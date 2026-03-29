@@ -1,8 +1,7 @@
 {
   "name": "offerte-tool-gr",
-  "version": "1.0.0",
-  "private": true,
+  "version": "1.1.0",
   "scripts": {
-    "build": "echo done"
+    "build": "mkdir -p dist && cp public/index.html dist/index.html"
   }
 }
