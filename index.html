@@ -9,21 +9,54 @@
 :root { --primary: #1e3a5f; --primary-light: #2a5a8f; --accent: #e8a838; --bg: #f5f7fa; --card: #fff; --border: #dde3ea; --text: #2c3e50; --muted: #7f8c9b; --success: #27ae60; --danger: #e74c3c; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+
+/* HEADER */
 .header { background: var(--primary); color: #fff; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
 .header h1 { font-size: 18px; font-weight: 600; }
 .header .subtitle { font-size: 12px; opacity: .7; }
-.header-actions { display: flex; gap: 8px; }
-.container { max-width: 1200px; margin: 0 auto; padding: 16px; }
-.grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
-@media(max-width:900px) { .grid { grid-template-columns: 1fr; } }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* LAYOUT */
+.container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+.section { margin-bottom: 16px; }
+
+/* CARDS */
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .card-header { background: var(--primary); color: #fff; padding: 10px 14px; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
 .card-body { padding: 14px; }
-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* FORMS */
+label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .5px; }
 input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; font-family: inherit; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(30,58,95,.15); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.form-group { margin-bottom: 10px; }
+.form-group { margin-bottom: 8px; }
+
+/* TOP BAR: Prijslijst + Datum + Nummer */
+.top-bar { display: grid; grid-template-columns: 1fr 150px 150px; gap: 12px; align-items: end; }
+@media(max-width:700px) { .top-bar { grid-template-columns: 1fr; } }
+
+/* KLANT + PROJECT naast elkaar */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:700px) { .info-grid { grid-template-columns: 1fr; } }
+.info-grid .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ARTIKELEN ZOEKEN - prominent */
+.search-section { position: relative; }
+.search-section input { font-size: 15px; padding: 12px 16px 12px 42px; border: 2px solid var(--primary); border-radius: 8px; }
+.search-section input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,168,56,.2); }
+.search-section::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+.search-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+/* ARTIKEL GRID */
+.artikel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; max-height: 350px; overflow-y: auto; margin-top: 8px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
+.artikel-cat-label { grid-column: 1 / -1; background: var(--primary); color: #fff; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+.artikel-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all .12s; }
+.artikel-card:hover { border-color: var(--primary); background: #eef3fb; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.artikel-card .naam { font-size: 12px; flex: 1; margin-right: 8px; }
+.artikel-card .code { color: var(--muted); font-size: 10px; }
+.artikel-card .prijs-tag { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+
+/* BUTTONS */
 .btn { padding: 7px 14px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all .15s; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover { background: var(--primary-light); }
@@ -34,21 +67,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-outline:hover { background: var(--bg); }
 .btn-sm { padding: 4px 8px; font-size: 11px; }
-.btn-block { width: 100%; justify-content: center; }
 
-/* Artikelen zoeken */
-.search-box { position: relative; margin-bottom: 8px; }
-.search-box input { padding-left: 32px; }
-.search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
-.artikel-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; }
-.artikel-cat { background: var(--bg); padding: 6px 10px; font-weight: 700; font-size: 11px; color: var(--primary); text-transform: uppercase; position: sticky; top: 0; border-bottom: 1px solid var(--border); }
-.artikel-item { padding: 6px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
-.artikel-item:hover { background: #eef3fb; }
-.artikel-item .naam { flex: 1; }
-.artikel-item .prijs { font-weight: 700; color: var(--primary); min-width: 70px; text-align: right; }
-.artikel-item .eenheid { color: var(--muted); font-size: 11px; min-width: 40px; text-align: right; margin-right: 8px; }
-
-/* Offerte tabel */
+/* OFFERTE TABEL */
 .offerte-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .offerte-table th { background: var(--primary); color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
 .offerte-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -59,117 +79,116 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .cat-row td { background: var(--bg); font-weight: 700; color: var(--primary); font-size: 11px; text-transform: uppercase; }
 .empty-state { text-align: center; padding: 40px; color: var(--muted); }
 
-/* Totalen */
-.totalen { margin-top: 16px; }
-.totalen-table { width: 300px; margin-left: auto; border-collapse: collapse; font-size: 13px; }
+/* BOTTOM: opmerkingen + totalen */
+.bottom-grid { display: grid; grid-template-columns: 1fr 350px; gap: 12px; }
+@media(max-width:700px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+/* TOTALEN */
+.totalen-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .totalen-table td { padding: 6px 10px; }
 .totalen-table .label { text-align: right; color: var(--muted); }
-.totalen-table .value { text-align: right; font-weight: 600; min-width: 100px; }
+.totalen-table .value { text-align: right; font-weight: 600; }
 .totalen-table .grand td { font-size: 16px; font-weight: 800; color: var(--primary); border-top: 2px solid var(--primary); }
 
-/* Toast */
+/* TOAST */
 .toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 13px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s; }
 .toast.show { transform: translateY(0); opacity: 1; }
-
-/* Toolbar */
-.toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
+<!-- ══════ HEADER ══════ -->
 <div class="header">
   <div>
     <h1>⛏️ Ground Research BV — Offerte Tool</h1>
     <div class="subtitle">Vrijheidweg 45, 1521 RP Wormerveer</div>
   </div>
   <div class="header-actions">
-    <button class="btn btn-success" onclick="exportPDF()">📄 PDF Offerte</button>
+    <button class="btn btn-success" onclick="exportPDF()">📄 PDF</button>
     <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportJSON()">💾 Export</button>
     <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="importJSON()">📂 Import</button>
+    <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="duplicateOfferte()">📋 Dupliceer</button>
+    <button class="btn btn-danger" onclick="nieuweOfferte()">🗑️ Nieuw</button>
   </div>
 </div>
 
 <div class="container">
-<div class="grid">
 
-<!-- LINKER KOLOM -->
-<div>
-  <!-- Prijslijst selectie -->
-  <div class="card" style="margin-bottom:12px">
-    <div class="card-header">Prijslijst</div>
-    <div class="card-body">
-      <select id="prijslijstSelect" onchange="filterArtikelen()"></select>
-    </div>
+<!-- ══════ 1. PRIJSLIJST + DATUM + NUMMER ══════ -->
+<div class="section">
+  <div class="top-bar">
+    <div class="form-group"><label>Prijslijst</label><select id="prijslijstSelect" onchange="filterArtikelen()"></select></div>
+    <div class="form-group"><label>Datum</label><input type="date" id="offerteDatum" oninput="autoSave()"></div>
+    <div class="form-group"><label>Offertenummer</label><input id="offerteNummer" placeholder="GR-2026-001" oninput="autoSave()"></div>
   </div>
+</div>
 
-  <!-- Klantgegevens -->
-  <div class="card" style="margin-bottom:12px">
-    <div class="card-header">Klantgegevens</div>
-    <div class="card-body">
-      <div class="form-group"><label>Bedrijfsnaam</label><input id="klantBedrijf" oninput="autoSave()"></div>
-      <div class="form-group"><label>Contactpersoon</label><input id="klantContact" oninput="autoSave()"></div>
-      <div class="form-group"><label>Adres</label><input id="klantAdres" oninput="autoSave()"></div>
-      <div class="form-row">
-        <div class="form-group"><label>Postcode</label><input id="klantPostcode" oninput="autoSave()"></div>
-        <div class="form-group"><label>Plaats</label><input id="klantPlaats" oninput="autoSave()"></div>
+<!-- ══════ 2. KLANT + PROJECT ══════ -->
+<div class="section">
+  <div class="info-grid">
+    <div class="card">
+      <div class="card-header">Klantgegevens</div>
+      <div class="card-body">
+        <div class="form-group"><label>Bedrijfsnaam</label><input id="klantBedrijf" oninput="autoSave()"></div>
+        <div class="form-group"><label>Contactpersoon</label><input id="klantContact" oninput="autoSave()"></div>
+        <div class="form-group"><label>Adres</label><input id="klantAdres" oninput="autoSave()"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Postcode</label><input id="klantPostcode" oninput="autoSave()"></div>
+          <div class="form-group"><label>Plaats</label><input id="klantPlaats" oninput="autoSave()"></div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Project -->
-  <div class="card" style="margin-bottom:12px">
-    <div class="card-header">Projectgegevens</div>
-    <div class="card-body">
-      <div class="form-group"><label>Projectnaam</label><input id="projectNaam" oninput="autoSave()"></div>
-      <div class="form-group"><label>Kenmerk / Referentie</label><input id="projectKenmerk" oninput="autoSave()"></div>
-      <div class="form-group"><label>Locatie</label><input id="projectLocatie" oninput="autoSave()"></div>
-      <div class="form-row">
-        <div class="form-group"><label>Datum</label><input type="date" id="offerteDatum" oninput="autoSave()"></div>
-        <div class="form-group"><label>Offertenummer</label><input id="offerteNummer" oninput="autoSave()"></div>
+    <div class="card">
+      <div class="card-header">Projectgegevens</div>
+      <div class="card-body">
+        <div class="form-group"><label>Projectnaam</label><input id="projectNaam" oninput="autoSave()"></div>
+        <div class="form-group"><label>Kenmerk / Referentie</label><input id="projectKenmerk" oninput="autoSave()"></div>
+        <div class="form-group"><label>Locatie</label><input id="projectLocatie" oninput="autoSave()"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- Artikelen zoeken -->
-  <div class="card">
-    <div class="card-header">Artikelen toevoegen <span id="artikelCount" style="opacity:.6;font-weight:400"></span></div>
-    <div class="card-body" style="padding:8px">
-      <div class="search-box"><input id="artikelZoek" placeholder="Zoek op omschrijving of code..." oninput="filterArtikelen()"></div>
-      <div class="artikel-list" id="artikelList"></div>
     </div>
   </div>
 </div>
 
-<!-- RECHTER KOLOM -->
-<div>
+<!-- ══════ 3. ARTIKELEN ZOEKEN ══════ -->
+<div class="section">
+  <div class="search-section">
+    <input id="artikelZoek" placeholder="Zoek artikel op naam of code... (klik om toe te voegen)" oninput="filterArtikelen()">
+  </div>
+  <div class="search-meta">
+    <span id="artikelCount"></span>
+    <button class="btn btn-sm btn-outline" onclick="addCustomRow()">+ Eigen regel toevoegen</button>
+  </div>
+  <div class="artikel-grid" id="artikelList"></div>
+</div>
+
+<!-- ══════ 4. OFFERTE TABEL ══════ -->
+<div class="section">
   <div class="card">
     <div class="card-header">
       Offerte
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="addCustomRow()">+ Eigen regel</button>
-        <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="duplicateOfferte()">📋 Dupliceer</button>
-        <button class="btn btn-sm btn-danger" onclick="nieuweOfferte()">🗑️ Nieuw</button>
-      </div>
+      <span id="regelCount" style="opacity:.6;font-weight:400"></span>
     </div>
     <div class="card-body" style="padding:0">
       <div id="offerteContent"></div>
     </div>
   </div>
+</div>
 
-  <!-- Korting & Opmerkingen -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+<!-- ══════ 5. OPMERKINGEN + TOTALEN ══════ -->
+<div class="section">
+  <div class="bottom-grid">
     <div class="card">
       <div class="card-header">Opmerkingen</div>
       <div class="card-body">
-        <textarea id="opmerkingen" rows="3" placeholder="Opmerkingen voor op de offerte..." oninput="autoSave()"></textarea>
+        <textarea id="opmerkingen" rows="4" placeholder="Opmerkingen, voorwaarden, bijzonderheden..." oninput="autoSave()"></textarea>
       </div>
     </div>
     <div class="card">
-      <div class="card-header">Korting & Totalen</div>
+      <div class="card-header">Totalen</div>
       <div class="card-body">
         <div class="form-group">
           <label>Korting %</label>
-          <input type="number" id="kortingPct" value="0" min="0" max="100" step="1" oninput="renderOfferte()">
+          <input type="number" id="kortingPct" value="0" min="0" max="100" step="1" oninput="renderOfferte()" style="width:80px">
         </div>
         <div id="totalenBox"></div>
       </div>
@@ -177,16 +196,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   </div>
 </div>
 
-</div>
-</div>
+</div><!-- container -->
 
 <div class="toast" id="toast"></div>
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="doImport(event)">
 
 <script>
 // ═══════════════════════════════════════════════
-// PRIJSDATA — embedded from VeldOffice export
-// Format: [prijslijst, categorie, code, omschrijving, eenheid, prijs]
+// PRIJSDATA
 // ═══════════════════════════════════════════════
 const PRIJSDATA = [["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","26"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","41"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2004","Boring van 1,5m-mv","stuk","59"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","63"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","69"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","72"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","85"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","121"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2011","Boring tot 5m-mv","stuk","182"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A1","Vaste kosten (voorbereidings- en afhandelingskosten)","Stuk","44"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A2","Reiskosten - aantal KM naar de locatie gerekend vanaf de dichtstbijzijnde standplaats/woonadres","Stuk","0.89"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A3","Reistijd (enkele reis) 0 tot 1uur (1 veldwerkbus met 1 medewerker)","Stuk","89"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A4","Reistijd (enkele reis) 1 tot 1,5 uur (1 veldwerkbus met 1 medewerker)","Stuk","127"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2010","Boring tot 4.5m-mv","stuk","152"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","2012","Steekbussen","stuk","22"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A5","Reistijd (enkele reis) 1,5 tot 2 uur (1 veldwerkbus met 1 medewerker)","Stuk","179"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A6","Reistijd (enkele reis) 2 tot 2,5 uur (1 veldwerkbus met 1 medewerker)","Stuk","224"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A7","KLIC-melding","Stuk","62"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","A8","Verwijderen bestrating en herbestrating","Stuk","11"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B1","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 2,0 m - mv, 32 mm","Stuk","104"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B2","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 2,5 m - mv, 32 mm","Stuk","109"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B3","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,0 m - mv, 32 mm","Stuk","118"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B4","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,0 m - mv, 40 mm","Stuk","131"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B5","Uitvoeren boring en plaatsen peilbuis, materiaal hdpe tot 3,0 m - mv, 63 mm","Stuk","235"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B6","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,5 m - mv, 32 mm","Stuk","137"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B7","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 4,0 m - mv, 32 mm","Stuk","193"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B8","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 4,5 m - mv, 32 mm","Stuk","211"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B9","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 5,0 m - mv, 32 mm","Stuk","244"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B10","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 5,5 m - mv, 32 mm","Stuk","270"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B11","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,0 m - mv, 32 mm","Stuk","297"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B12","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,0 m - mv, 40 mm","Stuk","358"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B13","Uitvoeren boring en plaatsen peilbuis, materiaal hdpe tot 6,0 m - mv, 63 mm","Stuk","691"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B14","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,5 m - mv, 32 mm","Stuk","360"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B15","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 7,0 m - mv, 32 mm","Stuk","484"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B16","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 7,5 m - mv, 32 mm","Stuk","519"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","B17","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 8,0 m - mv, 32 mm","Stuk","553"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C1","Klinkerstraatpot 100x205mm","Stuk","35"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C2","Straatpot 140x140 niet afsluitbaar, geel kunststof deksel","Stuk","35"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C3","Straatpot 140x140 niet afsluitbaar, geel kunststof deksel met metalen kern tbv metaaldetectie","Stuk","41"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C4","Straatpot 140x140 afsluitbaar, inbus M10 (8mm), geel kunststof deksel","Stuk","55"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C5","Straatpot 190x190, zwart PA deksel, inbusbout M10 (anti-diefstal)","Stuk","102"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C6","Betontegel met uitsparing (omranding) voor straatpot 140x140","Stuk","34"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C7","Kunststof beschermpot ø120mm (t.b.v. afwerking kernboring)","Stuk","41"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C8","RVS afdekkap t.b.v. boorgat ø120mm, plaat ø170x2mm","Stuk","55"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C9","RVS afdekkap t.b.v. boorgat ø120mm, plaat ø170x4mm (zwaar)","Stuk","62"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C10","PVC beschermbuis ø110mm L=30cm + PE deksel","Stuk","14"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C11","Kunststof beschermkoker ø125 L=1,5m. Inclusief kunststof kap en lip t.b.v. hangslot","Stuk","179"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C12","Kunststof beschermkoker ø160 L=1,5m. Inclusief kunststof kap en RVS borgpen","Stuk","332"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C13","RVS beschermkoker ø70 L=1,20m. Grijs GVK deksel","Stuk","193"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C14","Stalen beschermkoker ø76 L=1m verzinkt","Stuk","186"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C15","Stalen beschermkoker ø127 L=1m verzinkt","Stuk","201"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C16","Stalen beschermkoker ø159 L=1m verzinkt","Stuk","276"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C17","Stalen beschermkoker ø219 L=1m verzinkt","Stuk","314"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","C18","Aanzagen bestrating t.b.v. straatpot","Stuk","7"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D1","Asbestinspectiegat tot 0,5 m-mv (max. 1 laag, geen asbest verdacht materiaal)","Stuk","34"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D2","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 1,0 m-mv","Stuk","75"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D3","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 1,5 m-mv","Stuk","92"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D4","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 2,0 m-mv","Stuk","98"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D5","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 2,5 m-mv","Stuk","104"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D6","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 3,0 m-mv","Stuk","106"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D7","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 3,5 m-mv","Stuk","118"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D8","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 4,0 m-mv","Stuk","156"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D9","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 4,5 m-mv","Stuk","185"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D10","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 5,0 m-mv","Stuk","216"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D11","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 5,5 m-mv","Stuk","236"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D12","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 6,0 m-mv","Stuk","257"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D13","Graven sleuven 2,0 x 0,4 x 0,5 (handmatig)","Stuk","345"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D14","Inzet kraan incl. aan- en afvoerkosten","Stuk","1.245"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D15","Aan-, en afvoerkosten kraan","Stuk","242"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D16","Inhuur decounit","Stuk","484"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","D17","Aan-, afvoer- en schoonmaakkosten decounit","Stuk","242"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E1","Waterbodemmonstername m.b.v. zuigerboor vanaf oever","Stuk","179"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E2","Waterbodemmonsternamen m.b.v. zuigerboor vanaf boot (vanaf waterkolom 4 m doorsnede en 0,5m onder de vaste waterbodem)","Stuk","179"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E3","Slibmengmonster in veld (traject max. 500 meter, uit max. 10 steken, exclusief monsterneming)","Stuk","262"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E4","Inzet werkvlot/boot","Stuk","104"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E5","Aan- en afvoer kosten werkvlot/boot","Stuk","69"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","E6","Inmeten dwarsprofiel (max. 5 meter breed), m.b.v. GPS","Stuk","34"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F1","Beton-/asfaltboringen - basiskosten (opstartkosten / voorrijdkosten)","Stuk","101.05"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F2","Beton-/asfaltboringen - tarief per cm (diameter 120mm)","Stuk","3.12"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F3","Beton-/asfaltboringen - toeslag inzet aggregaat (elektriciteit) en watervoorziening","Stuk","81.7"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F4","Beton-/asfaltboringen - afwerken met cement/koud asfalt","Stuk","6.45"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F5","Ramgutsen - basiskosten (mobilisatie)","Stuk","75"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F6","Ramgutsen - tarief per meter","Stuk","37"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F7","PID-meting","Stuk","21"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F8","Afvoer boorafval (>25kg)","Stuk","10"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F9","Voorgraven t.b.v. K&L","Stuk","31"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F10","Milieukundig veldwerker - 1 uur (exclusief reisuren en kilometers)","Stuk","89"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F11","Milieukundig veldwerker - 4 uur (exclusief reisuren en kilometers)","Stuk","359"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F12","Milieukundig veldwerker - 8 uur (exclusief reisuren en kilometers)","Stuk","718"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F13","Ploeg, 2x milieukundig veldwerker - 1 uur (exclusief reisuren en kilometers)","Stuk","179"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F14","Ploeg, 2x milieukundig veldwerker - 4 uur (exclusief reisuren en kilometers)","Stuk","718"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","F15","Ploeg, 2x milieukundig veldwerker - 8 uur (exclusief reisuren en kilometers)","Stuk","1.439"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","G1","Inmeten punten (RD-XYZ-coördinaten) met GPS","Stuk","3.5"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","G2","Bepalen hoogte bovenkant PB en maaiveld t.o.v. NAP met GPS (XYZ-coördinaten)","Stuk","4.7"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","62"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","67"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","4004","Watermonster incl. lozingspakket","Stuk","75"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","4003","Watermonstername zonder zware metalen filter","stuk","53"],["01-Aveco 2026 Raamcontract","02 - Boringen in handkracht","12013","Boring tot 6m-mv","stuk","180"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","5215","Quad Huur","dag","134.38"],["01-Aveco 2026 Raamcontract","011 Extra artikelen","222","HCN Meter per dag","Stuk","43"],["01-Aveco 2026 Raamcontract","011 Extra artikelen","1234156","Beton\\Asfalt boring 350mm inlc afwerking","Stuk","215"],["01-Aveco 2026 Raamcontract","011 Extra artikelen","4321","Voorwaarschuwingswagen","Stuk","209.63"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","2400"],["01-Aveco 2026 Raamcontract","01 - Standaardlijst","5211","Dag Geoprobe","","1600"],["01-Aveco 2026 Raamcontract","011 Extra artikelen","3009-3H","Project begeleiding ap04","Stuk","225"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","23.65"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","37.63"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2004","Boring van 1,5m-mv","stuk","53.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","58.05"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","63.43"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","65.58"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","77.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","110.73"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2011","Boring tot 5m-mv","stuk","165.55"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A1","Vaste kosten (voorbereidings- en afhandelingskosten)","Stuk","44.08"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A2","Reiskosten - aantal KM naar de locatie gerekend vanaf de dichtstbijzijnde standplaats/woonadres","Stuk","0.81"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A3","Reistijd (enkele reis) 0 tot 1uur (1 veldwerkbus met 1 medewerker)","Stuk","81.7"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A4","Reistijd (enkele reis) 1 tot 1,5 uur (1 veldwerkbus met 1 medewerker)","Stuk","116.1"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2010","Boring tot 4.5m-mv","stuk","138.14"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","2012","Steekbussen","stuk","21.5"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A5","Reistijd (enkele reis) 1,5 tot 2 uur (1 veldwerkbus met 1 medewerker)","Stuk","163.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A6","Reistijd (enkele reis) 2 tot 2,5 uur (1 veldwerkbus met 1 medewerker)","Stuk","204.25"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A7","KLIC-melding","Stuk","56.98"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","A8","Verwijderen bestrating en herbestrating","Stuk","10.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B1","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 2,0 m - mv, 32 mm","Stuk","94.6"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B2","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 2,5 m - mv, 32 mm","Stuk","99.98"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B3","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,0 m - mv, 32 mm","Stuk","107.5"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B4","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,0 m - mv, 40 mm","Stuk","119.33"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B5","Uitvoeren boring en plaatsen peilbuis, materiaal hdpe tot 3,0 m - mv, 63 mm","Stuk","213.93"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B6","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 3,5 m - mv, 32 mm","Stuk","124.7"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B7","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 4,0 m - mv, 32 mm","Stuk","176.3"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B8","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 4,5 m - mv, 32 mm","Stuk","192.43"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B9","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 5,0 m - mv, 32 mm","Stuk","222.53"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B10","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 5,5 m - mv, 32 mm","Stuk","246.18"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B11","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,0 m - mv, 32 mm","Stuk","270.9"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B12","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,0 m - mv, 40 mm","Stuk","325.73"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B13","Uitvoeren boring en plaatsen peilbuis, materiaal hdpe tot 6,0 m - mv, 63 mm","Stuk","628.88"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B14","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 6,5 m - mv, 32 mm","Stuk","327.88"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B15","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 7,0 m - mv, 32 mm","Stuk","440.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B16","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 7,5 m - mv, 32 mm","Stuk","471.93"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","B17","Uitvoeren boring en plaatsen peilbuis, materiaal pvc, tot 8,0 m - mv, 32 mm","Stuk","503.1"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C1","Klinkerstraatpot 100x205mm","Stuk","32.25"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C2","Straatpot 140x140 niet afsluitbaar, geel kunststof deksel","Stuk","32.25"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C3","Straatpot 140x140 niet afsluitbaar, geel kunststof deksel met metalen kern tbv metaaldetectie","Stuk","37.63"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C4","Straatpot 140x140 afsluitbaar, inbus M10 (8mm), geel kunststof deksel","Stuk","50.53"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C5","Straatpot 190x190, zwart PA deksel, inbusbout M10 (anti-diefstal)","Stuk","93.53"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C6","Betontegel met uitsparing (omranding) voor straatpot 140x140","Stuk","31.18"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C7","Kunststof beschermpot ø120mm (t.b.v. afwerking kernboring)","Stuk","37.63"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C8","RVS afdekkap t.b.v. boorgat ø120mm, plaat ø170x2mm","Stuk","50.53"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C9","RVS afdekkap t.b.v. boorgat ø120mm, plaat ø170x4mm (zwaar)","Stuk","56.98"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C10","PVC beschermbuis ø110mm L=30cm + PE deksel","Stuk","12.9"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C11","Kunststof beschermkoker ø125 L=1,5m. Inclusief kunststof kap en lip t.b.v. hangslot","Stuk","163.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C12","Kunststof beschermkoker ø160 L=1,5m. Inclusief kunststof kap en RVS borgpen","Stuk","302.08"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C13","RVS beschermkoker ø70 L=1,20m. Grijs GVK deksel","Stuk","176.3"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C14","Stalen beschermkoker ø76 L=1m verzinkt","Stuk","169.85"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C15","Stalen beschermkoker ø127 L=1m verzinkt","Stuk","182.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C16","Stalen beschermkoker ø159 L=1m verzinkt","Stuk","251.55"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C17","Stalen beschermkoker ø219 L=1m verzinkt","Stuk","282.73"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","C18","Aanzagen bestrating t.b.v. straatpot","Stuk","6.45"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D1","Asbestinspectiegat tot 0,5 m-mv (max. 1 laag, geen asbest verdacht materiaal)","Stuk","31.18"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D2","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 1,0 m-mv","Stuk","68.8"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D3","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 1,5 m-mv","Stuk","83.85"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D4","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 2,0 m-mv","Stuk","89.23"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D5","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 2,5 m-mv","Stuk","94.6"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D6","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 3,0 m-mv","Stuk","96.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D7","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 3,5 m-mv","Stuk","107.5"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D8","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 4,0 m-mv","Stuk","141.9"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D9","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 4,5 m-mv","Stuk","168.78"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D10","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 5,0 m-mv","Stuk","196.73"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D11","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 5,5 m-mv","Stuk","200"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D12","Asbestinspectiegat tot 0,5 m-mv, doorgezet tot 6,0 m-mv","Stuk","234.35"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D13","Graven sleuven 2,0 x 0,4 x 0,5 (handmatig)","Stuk","313.9"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D14","Inzet kraan incl. aan- en afvoerkosten","Stuk","1131.98"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D15","Aan-, en afvoerkosten kraan","Stuk","220.38"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D16","Inhuur decounit","Stuk","440.21"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","D17","Aan-, afvoer- en schoonmaakkosten decounit","Stuk","220.38"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E1","Waterbodemmonstername m.b.v. zuigerboor vanaf oever","Stuk","163.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E2","Waterbodemmonsternamen m.b.v. zuigerboor vanaf boot (vanaf waterkolom 4 m doorsnede en 0,5m onder de vaste waterbodem)","Stuk","163.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E3","Slibmengmonster in veld (traject max. 500 meter, uit max. 10 steken, exclusief monsterneming)","Stuk","238.65"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E4","Inzet werkvlot/boot","Stuk","94.6"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E5","Aan- en afvoer kosten werkvlot/boot","Stuk","63.43"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","E6","Inmeten dwarsprofiel (max. 5 meter breed), m.b.v. GPS","Stuk","31.18"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F1","Beton-/asfaltboringen - basiskosten (opstartkosten / voorrijdkosten)","Stuk","101.05"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F2","Beton-/asfaltboringen - tarief per cm (diameter 120mm)","Stuk","3.12"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F3","Beton-/asfaltboringen - toeslag inzet aggregaat (elektriciteit) en watervoorziening","Stuk","81.7"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F4","Beton-/asfaltboringen - afwerken met cement/koud asfalt","Stuk","6.45"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F5","Ramgutsen - basiskosten (mobilisatie)","Stuk","75.25"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F6","Ramgutsen - tarief per meter","Stuk","37.63"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F7","PID-meting","Stuk","21.5"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F8","Afvoer boorafval (>25kg)","Stuk","9.68"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F9","Voorgraven t.b.v. K&L","Stuk","31.18"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F10","Milieukundig veldwerker - 1 uur (exclusief reisuren en kilometers)","Stuk","81.7"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F11","Milieukundig veldwerker - 4 uur (exclusief reisuren en kilometers)","Stuk","326.8"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F12","Milieukundig veldwerker - 8 uur (exclusief reisuren en kilometers)","Stuk","653.6"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F13","Ploeg, 2x milieukundig veldwerker - 1 uur (exclusief reisuren en kilometers)","Stuk","163.4"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F14","Ploeg, 2x milieukundig veldwerker - 4 uur (exclusief reisuren en kilometers)","Stuk","653.6"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","F15","Ploeg, 2x milieukundig veldwerker - 8 uur (exclusief reisuren en kilometers)","Stuk","1.30828"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","G1","Inmeten punten (RD-XYZ-coördinaten) met GPS","Stuk","3.23"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","G2","Bepalen hoogte bovenkant PB en maaiveld t.o.v. NAP met GPS (XYZ-coördinaten)","Stuk","4.3"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","53.75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","59.13"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","4004","Watermonster incl. lozingspakket","Stuk","75"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","4003","Watermonstername zonder zware metalen filter","stuk","48.38"],["02-Aveco 2025 Raamcontract","02 - Boringen in handkracht","12013","Boring tot 6m-mv","stuk","180"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","5215","Quad Huur","dag","134.38"],["02-Aveco 2025 Raamcontract","011 Extra artikelen","222","HCN Meter per dag","Stuk","43"],["02-Aveco 2025 Raamcontract","011 Extra artikelen","1234156","Beton\\Asfalt boring 350mm inlc afwerking","Stuk","215"],["02-Aveco 2025 Raamcontract","011 Extra artikelen","4321","Voorwaarschuwingswagen","Stuk","209.63"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","2400"],["02-Aveco 2025 Raamcontract","01 - Standaardlijst","5211","Dag Geoprobe","","1600"],["02-Aveco 2025 Raamcontract","011 Extra artikelen","3009-3H","Project begeleiding ap04","Stuk","225"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","1001","Klic melding","stuk","55"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","1002","Reiskosten+ certificeringskosten","stuk","720"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","9.24"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","21.95"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","32.34"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","34.65"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","38.12"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","45.05"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","47.355"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2012","Steekbussen","stuk","23.1"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3001","Peilbuis tot 2m-mv","stuk","69.3"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3002","Peilbuis tot 2.5m-mv","stuk","76.23"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3003","Peilbuis tot 3m-mv","stuk","78.54"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3004","Peilbuis tot 3.5m-mv","stuk","81.6375"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3005","Peilbuis tot 4m-mv","stuk","118.3875"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5001","Inspectie gat (0,3x0,3x0,5) + Boring tot 0,5m-mv","Stuk","18.48"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5010","Opstartkosten betonboren","project","86.625"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5011","Beton/asfaltboren per cm","cm","2.73"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3009","Straatpot, niet afsluitbaar","stuk","27.1425"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","3010","Straatpot, afsluitbaar","stuk","40.425"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5008","PID meter","Per Project","17.325"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5201","Aggregaat","Dag","98.175"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5009","Nemen slibmonsters","stuk","28.875"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5205","Inzet Boot","dag","82.5"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5204","Boot naar Texel","stuk","98.175"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5207","Minigraver","dag","800"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5209","(D)GPS inmeten of Uitzetten 0 tm 10 boringen","keer","86.625"],["03-Arcadis PWN Prijslijst 2025","011 Extra artikelen","5208","Veldwerkuren","uur","75"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","45.045"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","1006","Standaard onderzoek incl. Peilbuis tot max 3,5m incl watermonsternamen (PWN)","stuk","242.55"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","1005","Standaard onderzoek incl. boring tot max 2m incl voorrijkosten (PWN)","stuk","115.5"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","2003","Boring tot 1.5m contract","meters","25.41"],["03-Arcadis PWN Prijslijst 2025","11 - Ramgutsen","21001","Ramguts inzet per boring","stuk","28.875"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5012","Inspectiegat + Boring van 1m contract","Stuk","44.4675"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5013","Inspectiegat + Boring van 1.5 contract","Stuk","43.89"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5014","Inspectiegat + Boring van 2m contract","Stuk","50.82"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","46.2"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5015","Inspectie gat 30x30x50 zonder Pot","stuk","16.17"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","5212","MKB uren","","60"],["03-Arcadis PWN Prijslijst 2025","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","700"],["03-Arcadis PWN Prijslijst 2025","06 - Monstername grondwater","4005","Watermonster incl. lozingspakket","Stuk","115.5"],["03-Arcadis PWN Prijslijst 2025","14 - Overig","24012","Lichte verkeersmaatregelen","dag","185"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","1002","Reiskosten+ certificeringskosten","stuk","60"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","18"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","22"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2004","Boring van 1,5m-mv","stuk","30"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","40"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","45"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","50"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","55"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","65"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2010","Boring tot 4.5m-mv","stuk","70"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","3007","Peilbuis tot 5m-mv","stuk","75"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","54345","toeslag boring ramgutsen (tot maximaal 5 m-mv)","Stuk","40"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","654352345","peilbuis plaatsen en afwerken meter","Stuk","15"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","3009","Straatpot, niet afsluitbaar","stuk","22"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","45"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","G1","Inmeten punten (RD-XYZ-coördinaten) met GPS","Stuk","3"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","F7","PID-meting","Stuk","5"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","2012","Steekbussen","stuk","5"],["04-Raamcontract HB Advies Delft","011 Extra artikelen","5205","Inzet Boot","dag","50"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","","Slibsteek met ondergrond","Stuk","20"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","5010","Opstartkosten betonboren","project","60"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","5009","Nemen slibmonsters","stuk","10"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","452145","Weginspectie t.b.v. het inventarisatie asfaltnaden en reparatievakken","Stuk","40"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","5198","asfaltboring doorsnede 120 cm, laagdikte max 20 cm","Stuk","25"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","1984","Extra centimeters asfaltboring doorsnede 100-120 mm bij laagdikte >20 cm","Stuk","1.5"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","189741","doorboren puinfundatie onder asfalt, laagdikte max 30 cm","Stuk","30"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","9841785","Extra centimeters doorboren puinfundatie onder asfalt bij laagdikte >30 cm","Stuk","1.5"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","984","herstellen boorgat 100-120 mm met koud asfalt","Stuk","5"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","874","doorsnede 350 mm, per cm diepte","Stuk","3.5"],["04-Raamcontract HB Advies Delft","01 - Standaardlijst","69884894","herstellen boorgat 350 mm (terugplaatsen kern en koudasfalt/beton)","Stuk","15"],["04-Raamcontract HB Advies Delft","011 Extra artikelen","8741","rijdende wegafzetting","Stuk","60"],["04-Raamcontract HB Advies Delft","011 Extra artikelen","02","gebruik waarschuwingsborden (niet zijnde pionnen en schildjes)","Stuk","75"],["04-Raamcontract HB Advies Delft","011 Extra artikelen","03","gebruik verkeersregelaar","Stuk","33"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","1","Maaiveldinspectie asbest conform NEN 5707 /NEN 5897 (uisluitend bij onverhard of semi verhard maaiveldoppervlak)","Stuk","50"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","02","boring tot 2,0 m-mv incl. visuele asbestinspectie en foto van opgeb. mat.(diameter minimaal 12 cm inclusief boorprofiel)","Stuk","53"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","03","graven van proefgaten (0,30x0,30x0,50) volgens(VO) NEN 5707","Stuk","18"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","04","graven van proefgaten (0,30x0,30x0,50) volgens(VO) NEN 5897 (excl. inzet kraan)","Stuk","25"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","05","korte sleuf van 2 m lang en 0,3 m breed en 0,5 m diep","Stuk","40"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","06","korte sleuf van 2 m lang en 0,3 m breed en 1,0 m diep","Stuk","45"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","07","korte sleuf van 2 m lang en 0,3 m breed en 1,5 m diep","Stuk","50"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","08","korte sleuf van 2 m lang en 0,3 m breed  en 2 m diep","Stuk","55"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","09","deco unit (inclusief aansluiting)","Stuk","50"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","10","aan- en afvoer deco-unit","Stuk","60"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","11","schoonmaken deco-unit","Stuk","60"],["04-Raamcontract HB Advies Delft","07 - Asbestonderzoek","12","inzet kraan met overdruk en P3 filter","Stuk","1150"],["04-Raamcontract HB Advies Delft","011 Extra artikelen","09","Veldwerkploeg","Dag","960"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","18.67"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","29.04"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2004","Boring van 1,5m-mv","stuk","37.33"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","1002","Reiskosten+ certificeringskosten","stuk","60"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","46.67"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","51.85"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","53.93"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","57.04"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","67.41"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2010","Boring tot 4.5m-mv","stuk","77.78"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2011","Boring tot 5m-mv","stuk","88.15"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5001","Inspectie gat (0,3x0,3x0,5) + Boring tot 0,5m-mv","Stuk","44.59"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3001","Peilbuis tot 2m-mv","stuk","72.59"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3002","Peilbuis tot 2.5m-mv","stuk","74.66"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3003","Peilbuis tot 3m-mv","stuk","80.87"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3004","Peilbuis tot 3.5m-mv","stuk","86.07"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3005","Peilbuis tot 4m-mv","stuk","100.59"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3006","Peilbuis tot 4.5m-mv","stuk","113.03"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3007","Peilbuis tot 5m-mv","stuk","126.51"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3010","Straatpot, afsluitbaar","stuk","72.59"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5008","PID meter","Per Project","20"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","60"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","51.85"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5010","Opstartkosten betonboren","project","47.03"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5011","Beton/asfaltboren per cm","cm","4.15"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5201","Aggregaat","Dag","41.8"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3009","Straatpot, niet afsluitbaar","stuk","26.96"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","4003","Watermonstername zonder zware metalen filter","stuk","45"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","2012","Steekbussen","stuk","25.93"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","1001","Klic melding","stuk","52.25"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5009","Nemen slibmonsters","stuk","25.92"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5205","Inzet Boot","dag","124.44"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5206","Inzet deco-unit (incl. aan-en afvoer)","dag","575"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5207","Minigraver","dag","829.6"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5208","Veldwerkuren","uur","77.78"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","5209","(D)GPS inmeten of Uitzetten 0 tm 10 boringen","keer","78.38"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5002","Inspectiegat 30x30x0,5m +boren tot 1m","meters","54.96"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5004","Inspectie gat (0,3x0,3x0,5) + boren tot 1,5m","meters","63.26"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5005","Inspectie gat (0,3x0,3x0,5) + boren tot 2m","meters","72.59"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","3008","Peilbuis tot 5,5m-mv","stuk","198.11"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5006","Inspectie gat (0,3x0,3x0,5) + boren tot 2,5m","meters","77.76"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5007","Inspectie gat (0,3x0,3x0,5) + boren tot 3m","meters","79.85"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5003","Inspectiegat 30x30x0,5m +boren tot 1.2m","meters","49.12"],["06-Antea Zaanstad Standaardprijslijst","11 - Ramgutsen","21001","Ramguts inzet per boring","stuk","51.85"],["06-Antea Zaanstad Standaardprijslijst","20 - Machinaal boren","5216","Dag Sonic","","1828.75"],["06-Antea Zaanstad Standaardprijslijst","20 - Machinaal boren","5217","Transport Sonic","","261.25"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5215","Quad Huur","dag","104.5"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","2225"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","101010","Grind Zak","stuk","8.36"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","101112","Peilbuis Materiaal","Meter","10.45"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5214","Kraan voor asbestsleuven","","1567.5"],["06-Antea Zaanstad Standaardprijslijst","14 - Overig","9911007","Mob/demob. machinale boorstelling","dag","261.25"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","98764","Bentoniet en Grind per peilbuis","stuk","20.9"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","101112","Peilbuis Materiaal","Meter","5.23"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","01","Credit","stuk","5"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","01","kunstof Afwerk koker","Stuk","30"],["06-Antea Zaanstad Standaardprijslijst","01 - Standaardlijst","5015","Inspectie gat 30x30x50 zonder Pot","stuk","25.92"],["06-Antea Zaanstad Standaardprijslijst","10 - Betonboren","20003","Beton/asfaltgaten afsmeren","stuk","5.23"],["06-Antea Zaanstad Standaardprijslijst","14 - Overig","6110","Nacht toeslag 50%","Stuk","234.97"],["06-Antea Zaanstad Standaardprijslijst","05 - Boringen mechanisch, met peilbuis","001","Mechanisch Aan- en afvoer materieel","Stuk","181.48"],["06-Antea Zaanstad Standaardprijslijst","05 - Boringen mechanisch, met peilbuis","002","Mechanisch Boring met behulp van de geoprobe","Meter","82.96"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","1","Sleuf max 3 meter","Stuk","155.55"],["06-Antea Zaanstad Standaardprijslijst","011 Extra artikelen","2","Per strekkende meter extra","Stuk","25.92"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","24"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","37"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2004","Boring van 1,5m-mv","stuk","53"],["07-2026 Standaardprijslijst","01 - Standaardlijst","1002","Reiskosten+ certificeringskosten","stuk","96"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","58"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","63"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","65"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","76"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","109"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2010","Boring tot 4.5m-mv","stuk","137"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2011","Boring tot 5m-mv","stuk","163"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5001","Inspectie gat (0,3x0,3x0,5) + Boring tot 0,5m-mv","Stuk","55"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3001","Peilbuis tot 2m-mv","stuk","94"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3002","Peilbuis tot 2.5m-mv","stuk","99"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3004","Peilbuis tot 3.5m-mv","stuk","123"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3005","Peilbuis tot 4m-mv","stuk","174"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3006","Peilbuis tot 4.5m-mv","stuk","196"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3007","Peilbuis tot 5m-mv","stuk","219"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3010","Straatpot, afsluitbaar","stuk","88"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5008","PID meter","Per Project","20"],["07-2026 Standaardprijslijst","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","54"],["07-2026 Standaardprijslijst","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","60"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5010","Opstartkosten betonboren","project","85"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5011","Beton/asfaltboren per cm","cm","2.6"],["07-2026 Standaardprijslijst","011 Extra artikelen","5201","Aggregaat","Dag","68"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3009","Straatpot, niet afsluitbaar","stuk","32"],["07-2026 Standaardprijslijst","01 - Standaardlijst","4003","Watermonstername zonder zware metalen filter","stuk","47.1"],["07-2026 Standaardprijslijst","01 - Standaardlijst","2012","Steekbussen","stuk","24"],["07-2026 Standaardprijslijst","01 - Standaardlijst","1001","Klic melding","stuk","55"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5009","Nemen slibmonsters","stuk","22"],["07-2026 Standaardprijslijst","011 Extra artikelen","5204","Boot naar Texel","stuk","90"],["07-2026 Standaardprijslijst","011 Extra artikelen","5205","Inzet Boot","dag","145"],["07-2026 Standaardprijslijst","011 Extra artikelen","5206","Inzet deco-unit (incl. aan-en afvoer)","dag","400"],["07-2026 Standaardprijslijst","011 Extra artikelen","5207","Minigraver","dag","850"],["07-2026 Standaardprijslijst","011 Extra artikelen","5208","Veldwerkuren","uur","75"],["07-2026 Standaardprijslijst","011 Extra artikelen","5209","(D)GPS inmeten of Uitzetten 0 tm 10 boringen","keer","91"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5002","Inspectiegat 30x30x0,5m +boren tot 1m","meters","68"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5004","Inspectie gat (0,3x0,3x0,5) + boren tot 1,5m","meters","84"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5005","Inspectie gat (0,3x0,3x0,5) + boren tot 2m","meters","89"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5006","Inspectie gat (0,3x0,3x0,5) + boren tot 2,5m","meters","94"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5007","Inspectie gat (0,3x0,3x0,5) + boren tot 3m","meters","96"],["07-2026 Standaardprijslijst","11 - Ramgutsen","21001","Ramguts inzet per boring","stuk","25"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5211","Dag Geoprobe","","1400"],["07-2026 Standaardprijslijst","20 - Machinaal boren","5216","Dag Sonic","","1750"],["07-2026 Standaardprijslijst","20 - Machinaal boren","5217","Transport Sonic","","500"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5215","Quad Huur","dag","165"],["07-2026 Standaardprijslijst","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","15000"],["07-2026 Standaardprijslijst","011 Extra artikelen","1011010","Zak bentoniet","stuk","20"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5214","Kraan voor asbestsleuven","","1075"],["07-2026 Standaardprijslijst","14 - Overig","9911007","Mob/demob. machinale boorstelling","dag","500"],["07-2026 Standaardprijslijst","01 - Standaardlijst","98764","Bentoniet en Grind per peilbuis","stuk","20"],["07-2026 Standaardprijslijst","20 - Machinaal boren","","Verloren Punten","stuk","10"],["07-2026 Standaardprijslijst","01 - Standaardlijst","01","Credit","stuk","-79"],["07-2026 Standaardprijslijst","10 - Betonboren","","Afsmeren asfalt of betonborigen","Stuk","6"],["07-2026 Standaardprijslijst","14 - Overig","24012","Lichte verkeersmaatregelen","dag","250"],["07-2026 Standaardprijslijst","011 Extra artikelen","","Nacht toeslag","Stuk","706.25"],["07-2026 Standaardprijslijst","01 - Standaardlijst","5015","Inspectie gat 30x30x50 zonder Pot","stuk","31"],["07-2026 Standaardprijslijst","06 - Monstername grondwater","4005","Watermonster incl. lozingspakket","Stuk","75"],["07-2026 Standaardprijslijst","01 - Standaardlijst","00123","Km vergoeding","Stuk","0.65"],["07-2026 Standaardprijslijst","011 Extra artikelen","0021","Peilbuis tot 3m-mv","Stuk","107"],["07-2026 Standaardprijslijst","011 Extra artikelen","0022","Peilbuis tot 4m-mv","Stuk","174"],["07-2026 Standaardprijslijst","10 - Betonboren","","Beton asfaltboring 350mm","Stuk","190"],["07-2026 Standaardprijslijst","01 - Standaardlijst","","Slibsteek met ondergrond","Stuk","37"],["07-2026 Standaardprijslijst","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","15000"],["07-2026 Standaardprijslijst","02 - Boringen in handkracht","12013","Boring tot 6m-mv","stuk","193"],["07-2026 Standaardprijslijst","011 Extra artikelen","5500","Verblijfkosten","Stuk","550"],["07-2026 Standaardprijslijst","011 Extra artikelen","1123","Deksel 120mm","Stuk","33"],["07-2026 Standaardprijslijst","011 Extra artikelen","5208","Veldwerkuren","uur","79"],["07-2026 Standaardprijslijst","01 - Standaardlijst","01","kunstof Afwerk koker","Stuk","135"],["07-2026 Standaardprijslijst","01 - Standaardlijst","000004","Voorrijkosten > 100 km","Stuk","153"],["07-2026 Standaardprijslijst","01 - Standaardlijst","3003","Peilbuis tot 3m-mv","stuk","107"],["07-2026 Standaardprijslijst","011 Extra artikelen","2131651651","Koppel Stratenmakers","Uur","110"],["07-2026 Standaardprijslijst","01 - Standaardlijst","C14","Stalen beschermkoker ø76 L=1m verzinkt","Stuk","110"],["07-2026 Standaardprijslijst","011 Extra artikelen","12345","Depot bemonstering indicatief","Stuk","150"],["07-2026 Standaardprijslijst","01 - Standaardlijst","1003","Voorrijkosten","project","35"],["07-2026 Standaardprijslijst","01 - Standaardlijst","T1","Tank onderzoek","Stuk","350"],["07-2026 Standaardprijslijst","011 Extra artikelen","1","Peilbuis tot 3,5m 60mm.","Stuk","147"],["07-2026 Standaardprijslijst","011 Extra artikelen","765243523y","Verkeers Maatregelen","Stuk","582.5"],["07-2026 Standaardprijslijst","011 Extra artikelen","12643756","Partij keuring","Stuk","500"],["07-2026 Standaardprijslijst","02 - Boringen in handkracht","12015","Boring tot 7m-mv","stuk","175"],["07-2026 Standaardprijslijst","011 Extra artikelen","21215152","Boring tot 7m handmating","Stuk","175"],["07-2026 Standaardprijslijst","011 Extra artikelen","234523","Peilbuis 7m","Stuk","275"],["07-2026 Standaardprijslijst","011 Extra artikelen","76542","Weekend toeslag","Stuk","1082.3"],["07-2026 Standaardprijslijst","011 Extra artikelen","243565","Kraan 2.5 ton incl. machinist en transport","Dag","800"],["07-2026 Standaardprijslijst","02 - Boringen in handkracht","12013","Boring tot 6m-mv","stuk","160"],["07-2026 Standaardprijslijst","011 Extra artikelen","12356425","Beschermhek Rood","Stuk","250"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","1001","Klic melding","stuk","55"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","1002","Reiskosten+ certificeringskosten","stuk","720"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2001","Boring tot 0,5 m-mv","Stuk","9.62"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2002","Boring tot 1m-mv","stuk","22.85"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2005","Boring tot 2m-mv","stuk","33.67"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2006","Boring tot 2.5m-mv","stuk","36.07"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2007","Boring tot 3m-mv","stuk","39.68"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2008","Boring tot 3.5m-mv","stuk","46.9"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2009","Boring tot 4m-mv","stuk","49.3"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2012","Steekbussen","stuk","24.05"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3001","Peilbuis tot 2m-mv","stuk","72.14"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3002","Peilbuis tot 2.5m-mv","stuk","79.36"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3003","Peilbuis tot 3m-mv","stuk","81.76"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3004","Peilbuis tot 3.5m-mv","stuk","84.98"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3005","Peilbuis tot 4m-mv","stuk","123.24"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5001","Inspectie gat (0,3x0,3x0,5) + Boring tot 0,5m-mv","Stuk","19.24"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5010","Opstartkosten betonboren","project","90.18"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5011","Beton/asfaltboren per cm","cm","2.84"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3009","Straatpot, niet afsluitbaar","stuk","28.255"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","3010","Straatpot, afsluitbaar","stuk","42.08"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5008","PID meter","Per Project","18.04"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5201","Aggregaat","Dag","102.2"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5009","Nemen slibmonsters","stuk","30.05"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5205","Inzet Boot","dag","85.88"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5204","Boot naar Texel","stuk","102.2"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5207","Minigraver","dag","832.8"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5209","(D)GPS inmeten of Uitzetten 0 tm 10 boringen","keer","90.18"],["08-Arcadis PWN Prijslijst 2026","011 Extra artikelen","5208","Veldwerkuren","uur","78.075"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","4002","Watermonstername met zware metalen","stuk","46.89"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","1006","Standaard onderzoek incl. Peilbuis tot max 3,5m incl watermonsternamen (PWN)","stuk","252.5"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","1005","Standaard onderzoek incl. boring tot max 2m incl voorrijkosten (PWN)","stuk","120.24"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","2003","Boring tot 1.5m contract","meters","26.45"],["08-Arcadis PWN Prijslijst 2026","11 - Ramgutsen","21001","Ramguts inzet per boring","stuk","30.06"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5012","Inspectiegat + Boring van 1m contract","Stuk","46.29"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5013","Inspectiegat + Boring van 1.5 contract","Stuk","45.69"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5014","Inspectiegat + Boring van 2m contract","Stuk","52.9"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","4001","Voorrijkosten watermonstername","stuk","48.09"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5015","Inspectie gat 30x30x50 zonder Pot","stuk","16.83"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","5212","MKB uren","","60"],["08-Arcadis PWN Prijslijst 2026","01 - Standaardlijst","12121212","Vaste Prijsafspraak","stuk","700"],["08-Arcadis PWN Prijslijst 2026","06 - Monstername grondwater","4005","Watermonster incl. lozingspakket","Stuk","115.5"],["08-Arcadis PWN Prijslijst 2026","14 - Overig","24012","Lichte verkeersmaatregelen","dag","192.59"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5300","Pakket A Grondonderzoek 1 t/m 3 boringen, standaard","Stuk","117"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5301","Pakket B Grondonderzoek 1 t/m 3 boringen, Spoed","Stuk","160"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5302","Pakket C Grondonderzoek 4 t/m 10 boringen, standaard","Stuk","337"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5304","Pakket D Grondonderzoek 4 t/m 10 boringen, Spoed","Stuk","462.5"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5305","Pakket  E Grond- en asbestonderzoek 1 t/m 3 boringen, standaard","Stuk","179"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5306","Pakket F Grond- en asbestonderzoek 1 t/m 3 boringen, Spoed","Stuk","222"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5307","Pakket G Grond- en asbestonderzoek 4 t/m 10 boringen, standaard","Stuk","608"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5308","Pakket H Grond- en asbestonderzoek 4 t/m 10 boringen, Spoed","Stuk","734"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5309","Pakket I Grond- en wateronderzoek 1 t/m 3 boringen, standaard incl. wm","Stuk","305"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5310","Pakket J Grond- en wateronderzoek 1 t/m 3 boringen, Spoed incl. wm","Stuk","367"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5312","Pakket L Grond- en wateronderzoek 4 t/m 10 boringen, Spoed incl. wm","Stuk","680"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5311","Pakket K Grond- en wateronderzoek 4 t/m 10 boringen, standaard incl. wm","Stuk","557"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5312","Pakket M Grond-, asbest- en wateronderzoek 1 t/m 3 boringen, standaard","Stuk","353"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5313","Pakket N Grond-, asbest- en wateronderzoek 1 t/m 3 boringen, Spoed","Stuk","420"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5314","Pakket O Grond-, asbest- en wateronderzoek 4 t/m 10 boringen, standaard","Stuk","733"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5315","Pakket P Grond-, asbest- en wateronderzoek 4 t/m 10 boringen, Spoed","Stuk","855"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5316","Pakket Q Uitvoering veldwerk inl. reistijd en materiaal p/u met omschrijving","Stuk","62.5"],["09-2026 Q-terra Standaardprijslijst","01 - Standaardlijst","5317","Pakket R Monstername en opname grondwaterstand incl. reistijd","Stuk","72"]];
 
@@ -200,22 +217,17 @@ let nextId = 1;
 // INIT
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-  // Populate prijslijst dropdown
   const lijsten = [...new Set(PRIJSDATA.map(r => r[0]))];
   const sel = document.getElementById('prijslijstSelect');
   lijsten.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
-
-  // Set date
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
-
-  // Load from localStorage
   loadState();
   filterArtikelen();
   renderOfferte();
 });
 
 // ═══════════════════════════════════════════════
-// ARTIKEL LIJST
+// ARTIKEL LIJST (card grid)
 // ═══════════════════════════════════════════════
 function filterArtikelen() {
   const lijst = document.getElementById('prijslijstSelect').value;
@@ -223,70 +235,45 @@ function filterArtikelen() {
   const filtered = PRIJSDATA.filter(r => r[0] === lijst && (
     r[3].toLowerCase().includes(zoek) || r[2].toLowerCase().includes(zoek)
   ));
-
-  // Group by category
   const cats = {};
-  filtered.forEach(r => {
-    const cat = r[1] || 'Overig';
-    if (!cats[cat]) cats[cat] = [];
-    cats[cat].push(r);
-  });
+  filtered.forEach(r => { const cat = r[1] || 'Overig'; if (!cats[cat]) cats[cat] = []; cats[cat].push(r); });
 
   const container = document.getElementById('artikelList');
   container.innerHTML = '';
   let count = 0;
 
   Object.keys(cats).sort().forEach(cat => {
-    const catDiv = document.createElement('div');
-    catDiv.className = 'artikel-cat';
-    catDiv.textContent = cat;
-    container.appendChild(catDiv);
+    const catLabel = document.createElement('div');
+    catLabel.className = 'artikel-cat-label';
+    catLabel.textContent = cat;
+    container.appendChild(catLabel);
 
     cats[cat].sort((a,b) => a[3].localeCompare(b[3],'nl')).forEach(r => {
       count++;
-      const item = document.createElement('div');
-      item.className = 'artikel-item';
-      item.onclick = () => addArtikel(r);
-      item.innerHTML = '<span class="naam">' + esc(r[3]) + (r[2] ? ' <span style="color:#aaa;font-size:10px">(' + esc(r[2]) + ')</span>' : '') + '</span>' +
-        '<span class="eenheid">' + esc(r[4]) + '</span>' +
-        '<span class="prijs">€ ' + fmt(parseFloat(r[5])||0) + '</span>';
-      container.appendChild(item);
+      const card = document.createElement('div');
+      card.className = 'artikel-card';
+      card.onclick = () => addArtikel(r);
+      card.innerHTML = '<div><div class="naam">' + esc(r[3]) + '</div>' +
+        (r[2] ? '<div class="code">' + esc(r[2]) + ' · ' + esc(r[4]) + '</div>' : '<div class="code">' + esc(r[4]) + '</div>') +
+        '</div><span class="prijs-tag">€ ' + fmt(parseFloat(r[5])||0) + '</span>';
+      container.appendChild(card);
     });
   });
-
-  document.getElementById('artikelCount').textContent = '(' + count + ')';
+  document.getElementById('artikelCount').textContent = count + ' artikelen in deze lijst';
 }
 
 // ═══════════════════════════════════════════════
 // OFFERTE REGELS
 // ═══════════════════════════════════════════════
 function addArtikel(r) {
-  offerte.regels.push({
-    id: nextId++,
-    code: r[2],
-    omschrijving: r[3],
-    eenheid: r[4],
-    categorie: r[1],
-    prijs: parseFloat(r[5]) || 0,
-    aantal: 1,
-    custom: false
-  });
+  offerte.regels.push({ id: nextId++, code: r[2], omschrijving: r[3], eenheid: r[4], categorie: r[1], prijs: parseFloat(r[5]) || 0, aantal: 1, custom: false });
   renderOfferte();
   autoSave();
   showToast('✓ ' + r[3] + ' toegevoegd');
 }
 
 function addCustomRow() {
-  offerte.regels.push({
-    id: nextId++,
-    code: '',
-    omschrijving: 'Nieuwe regel',
-    eenheid: 'Stuk',
-    categorie: 'Overig',
-    prijs: 0,
-    aantal: 1,
-    custom: true
-  });
+  offerte.regels.push({ id: nextId++, code: '', omschrijving: 'Nieuwe regel', eenheid: 'Stuk', categorie: 'Overig', prijs: 0, aantal: 1, custom: true });
   renderOfferte();
   autoSave();
 }
@@ -299,10 +286,7 @@ function removeRegel(id) {
 
 function updateRegel(id, field, value) {
   const r = offerte.regels.find(r => r.id === id);
-  if (r) {
-    if (field === 'aantal' || field === 'prijs') r[field] = parseFloat(value) || 0;
-    else r[field] = value;
-  }
+  if (r) { if (field === 'aantal' || field === 'prijs') r[field] = parseFloat(value) || 0; else r[field] = value; }
   renderOfferte();
   autoSave();
 }
@@ -312,20 +296,16 @@ function updateRegel(id, field, value) {
 // ═══════════════════════════════════════════════
 function renderOfferte() {
   const container = document.getElementById('offerteContent');
+  document.getElementById('regelCount').textContent = offerte.regels.length ? '(' + offerte.regels.length + ' regels)' : '';
 
   if (offerte.regels.length === 0) {
-    container.innerHTML = '<div class="empty-state">Nog geen artikelen toegevoegd.<br>Zoek en klik links om artikelen toe te voegen.</div>';
+    container.innerHTML = '<div class="empty-state">Nog geen artikelen toegevoegd.<br>Zoek hierboven en klik om artikelen toe te voegen.</div>';
     renderTotalen(0);
     return;
   }
 
-  // Group by category
   const cats = {};
-  offerte.regels.forEach(r => {
-    const cat = r.categorie || 'Overig';
-    if (!cats[cat]) cats[cat] = [];
-    cats[cat].push(r);
-  });
+  offerte.regels.forEach(r => { const cat = r.categorie || 'Overig'; if (!cats[cat]) cats[cat] = []; cats[cat].push(r); });
 
   let html = '<table class="offerte-table"><thead><tr><th style="width:30px"></th><th>Omschrijving</th><th style="width:60px">Eenheid</th><th class="num" style="width:70px">Aantal</th><th class="num" style="width:90px">Prijs</th><th class="num" style="width:90px">Totaal</th><th style="width:30px"></th></tr></thead><tbody>';
 
@@ -342,11 +322,9 @@ function renderOfferte() {
         '<td class="num"><input type="number" value="' + r.aantal + '" min="0" step="1" onchange="updateRegel(' + r.id + ',\'aantal\',this.value)"></td>' +
         '<td class="num"><input type="number" value="' + r.prijs.toFixed(2) + '" min="0" step="0.01" onchange="updateRegel(' + r.id + ',\'prijs\',this.value)"></td>' +
         '<td class="num" style="font-weight:600">€ ' + fmt(totaal) + '</td>' +
-        '<td><button class="del-btn" onclick="removeRegel(' + r.id + ')">×</button></td>' +
-        '</tr>';
+        '<td><button class="del-btn" onclick="removeRegel(' + r.id + ')">×</button></td></tr>';
     });
   });
-
   html += '</tbody></table>';
   container.innerHTML = html;
   renderTotalen(subtotaal);
@@ -380,7 +358,6 @@ function exportPDF() {
   const W = 210, M = 15, CW = W - 2*M;
   let y = 15;
 
-  // Header
   doc.setFillColor(30, 58, 95);
   doc.rect(0, 0, W, 38, 'F');
   doc.setTextColor(255);
@@ -402,7 +379,6 @@ function exportPDF() {
   y = 48;
   doc.setTextColor(0);
 
-  // Klantgegevens
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(gv('klantBedrijf') || 'Klant', M, y);
@@ -412,7 +388,6 @@ function exportPDF() {
   if (gv('klantAdres')) { y += 5; doc.text(gv('klantAdres'), M, y); }
   if (gv('klantPostcode') || gv('klantPlaats')) { y += 5; doc.text((gv('klantPostcode') + ' ' + gv('klantPlaats')).trim(), M, y); }
 
-  // Project info rechts
   let py = 48;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -426,7 +401,6 @@ function exportPDF() {
 
   y = Math.max(y, py) + 12;
 
-  // Tabel header
   const cols = [M, M+55, M+100, M+120, M+148, M+CW];
   doc.setFillColor(30, 58, 95);
   doc.rect(M, y, CW, 7, 'F');
@@ -444,17 +418,11 @@ function exportPDF() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
 
-  // Group by category
   const cats = {};
-  offerte.regels.forEach(r => {
-    const cat = r.categorie || 'Overig';
-    if (!cats[cat]) cats[cat] = [];
-    cats[cat].push(r);
-  });
+  offerte.regels.forEach(r => { const cat = r.categorie || 'Overig'; if (!cats[cat]) cats[cat] = []; cats[cat].push(r); });
 
   let subtotaal = 0;
   Object.keys(cats).sort().forEach(cat => {
-    // Check page
     if (y > 265) { doc.addPage(); y = 20; }
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
@@ -468,7 +436,6 @@ function exportPDF() {
       if (y > 270) { doc.addPage(); y = 20; }
       const totaal = r.aantal * r.prijs;
       subtotaal += totaal;
-      // Truncate long text
       const txt = r.omschrijving.length > 45 ? r.omschrijving.substring(0, 43) + '...' : r.omschrijving;
       doc.text(txt, cols[0]+2, y);
       doc.text(r.eenheid || '', cols[1]+2, y);
@@ -482,7 +449,6 @@ function exportPDF() {
     y += 2;
   });
 
-  // Totalen
   y += 5;
   if (y > 250) { doc.addPage(); y = 20; }
   const kortingPct = parseFloat(document.getElementById('kortingPct').value) || 0;
@@ -507,7 +473,6 @@ function exportPDF() {
   doc.setTextColor(255);
   doc.text('Totaal incl. BTW:', 132, y+1); doc.text('€ ' + fmt(totaal), M+CW-2, y+1, { align: 'right' });
 
-  // Opmerkingen
   const opm = gv('opmerkingen');
   if (opm) {
     y += 15;
@@ -523,7 +488,6 @@ function exportPDF() {
     y += 5 + lines.length * 4;
   }
 
-  // Footer
   y += 10;
   if (y > 265) { doc.addPage(); y = 20; }
   doc.setTextColor(100);
@@ -535,7 +499,6 @@ function exportPDF() {
   y += 4;
   doc.text('Ground Research BV  |  IBAN: NL...  |  KvK: 37115498  |  BTW: NL815774866B01', M, y);
 
-  // Save
   const naam = (gv('klantBedrijf') || 'offerte').replace(/\s+/g, '_');
   doc.save('Offerte_' + naam + '_' + gv('offerteDatum') + '.pdf');
   showToast('📄 PDF geëxporteerd');
@@ -546,15 +509,11 @@ function exportPDF() {
 // ═══════════════════════════════════════════════
 function autoSave() {
   const state = {
-    offerte: offerte,
-    nextId: nextId,
+    offerte, nextId,
     prijslijst: document.getElementById('prijslijstSelect').value,
     klant: { bedrijf: gv('klantBedrijf'), contact: gv('klantContact'), adres: gv('klantAdres'), postcode: gv('klantPostcode'), plaats: gv('klantPlaats') },
     project: { naam: gv('projectNaam'), kenmerk: gv('projectKenmerk'), locatie: gv('projectLocatie') },
-    datum: gv('offerteDatum'),
-    nummer: gv('offerteNummer'),
-    kortingPct: gv('kortingPct'),
-    opmerkingen: gv('opmerkingen')
+    datum: gv('offerteDatum'), nummer: gv('offerteNummer'), kortingPct: gv('kortingPct'), opmerkingen: gv('opmerkingen')
   };
   localStorage.setItem('gr_offerte', JSON.stringify(state));
 }
@@ -566,18 +525,8 @@ function loadState() {
     offerte = s.offerte || { regels: [] };
     nextId = s.nextId || 1;
     if (s.prijslijst) document.getElementById('prijslijstSelect').value = s.prijslijst;
-    if (s.klant) {
-      sv('klantBedrijf', s.klant.bedrijf);
-      sv('klantContact', s.klant.contact);
-      sv('klantAdres', s.klant.adres);
-      sv('klantPostcode', s.klant.postcode);
-      sv('klantPlaats', s.klant.plaats);
-    }
-    if (s.project) {
-      sv('projectNaam', s.project.naam);
-      sv('projectKenmerk', s.project.kenmerk);
-      sv('projectLocatie', s.project.locatie);
-    }
+    if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
+    if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
     if (s.datum) sv('offerteDatum', s.datum);
     if (s.nummer) sv('offerteNummer', s.nummer);
     if (s.kortingPct) sv('kortingPct', s.kortingPct);
@@ -587,53 +536,34 @@ function loadState() {
 
 function exportJSON() {
   autoSave();
-  const data = localStorage.getItem('gr_offerte');
-  const blob = new Blob([data], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'offerte_' + (gv('offerteNummer') || 'backup') + '.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const blob = new Blob([localStorage.getItem('gr_offerte')], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'offerte_' + (gv('offerteNummer') || 'backup') + '.json'; a.click(); URL.revokeObjectURL(a.href);
   showToast('💾 JSON geëxporteerd');
 }
 
-function importJSON() {
-  document.getElementById('importFile').click();
-}
+function importJSON() { document.getElementById('importFile').click(); }
 
 function doImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
-    localStorage.setItem('gr_offerte', e.target.result);
-    loadState();
-    filterArtikelen();
-    renderOfferte();
-    showToast('📂 Offerte geladen');
-  };
-  reader.readAsText(file);
-  event.target.value = '';
+  reader.onload = function(e) { localStorage.setItem('gr_offerte', e.target.result); loadState(); filterArtikelen(); renderOfferte(); showToast('📂 Offerte geladen'); };
+  reader.readAsText(file); event.target.value = '';
 }
 
 function nieuweOfferte() {
   if (!confirm('Nieuwe offerte starten? Huidige wordt gewist.')) return;
-  offerte = { regels: [] };
-  nextId = 1;
+  offerte = { regels: [] }; nextId = 1;
   ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteNummer','opmerkingen'].forEach(id => sv(id, ''));
   sv('kortingPct', '0');
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
-  renderOfferte();
-  autoSave();
-  showToast('🗑️ Nieuwe offerte gestart');
+  renderOfferte(); autoSave(); showToast('🗑️ Nieuwe offerte gestart');
 }
 
 function duplicateOfferte() {
-  // Just re-save with new nummer
   const nr = gv('offerteNummer');
   sv('offerteNummer', nr ? nr + '-kopie' : 'KOPIE');
-  autoSave();
-  showToast('📋 Offerte gedupliceerd');
+  autoSave(); showToast('📋 Offerte gedupliceerd');
 }
 
 // ═══════════════════════════════════════════════
@@ -643,18 +573,8 @@ function gv(id) { return document.getElementById(id)?.value || ''; }
 function sv(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function fmt(n) { return n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function formatDateNL(d) {
-  if (!d) return '';
-  const parts = d.split('-');
-  return parts[2] + '-' + parts[1] + '-' + parts[0];
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
+function formatDateNL(d) { if (!d) return ''; const p = d.split('-'); return p[2] + '-' + p[1] + '-' + p[0]; }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 </script>
 </body>
 </html>
