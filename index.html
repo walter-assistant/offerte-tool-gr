@@ -242,7 +242,7 @@ function filterArtikelen() {
     catDiv.textContent = cat;
     container.appendChild(catDiv);
 
-    cats[cat].sort((a,b) => (a[5]*1||0)-(b[5]*1||0)).forEach(r => {
+    cats[cat].sort((a,b) => a[3].localeCompare(b[3],'nl')).forEach(r => {
       count++;
       const item = document.createElement('div');
       item.className = 'artikel-item';
