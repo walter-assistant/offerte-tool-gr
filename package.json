@@ -1,7 +1,0 @@
-{
-  "name": "offerte-tool-gr",
-  "version": "1.1.0",
-  "scripts": {
-    "build": "mkdir -p dist && cp public/index.html dist/index.html"
-  }
-}
