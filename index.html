@@ -6,6 +6,7 @@
 <title>Offerte Tool — Ground Research BV</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="klanten.js"></script>
 <style>
 :root { --primary: #1e3a5f; --primary-light: #2a5a8f; --accent: #e8a838; --bg: #f5f7fa; --card: #fff; --border: #dde3ea; --text: #2c3e50; --muted: #7f8c9b; --success: #27ae60; --danger: #e74c3c; }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -171,7 +172,15 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <div class="section">
   <div class="info-grid">
     <div class="card">
-      <div class="card-header">Klantgegevens</div>
+      <div class="card-header">Klantgegevens <span style="font-weight:400;font-size:11px;opacity:.7">— selecteer of typ handmatig</span></div>
+      <div style="padding:10px 14px 0 14px">
+        <div class="form-group" style="margin-bottom:6px">
+          <label>Klant selecteren</label>
+          <select id="klantSelect" onchange="selectKlant()" style="font-size:13px">
+            <option value="">— Kies een klant —</option>
+          </select>
+        </div>
+      </div>
       <div class="card-body">
         <div class="form-group"><label>Bedrijfsnaam</label><input id="klantBedrijf" oninput="autoSave()"></div>
         <div class="form-group"><label>Contactpersoon</label><input id="klantContact" oninput="autoSave()"></div>
@@ -265,6 +274,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const sel = document.getElementById('prijslijstSelect');
   lijsten.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
+  // Klanten dropdown vullen
+  if (typeof KLANTEN !== 'undefined') {
+    const ks = document.getElementById('klantSelect');
+    KLANTEN.forEach((k, i) => { const o = document.createElement('option'); o.value = i; o.textContent = k.naam; ks.appendChild(o); });
+  }
   // Auth init — app wordt geladen via showApp() na login
   initAuth();
 });
@@ -729,6 +743,21 @@ async function renameOfferte() {
   await loadOffertesList();
   renderOfferteSelect();
   showToast('✏️ Hernoemd');
+}
+
+// Klant selectie
+function selectKlant() {
+  const idx = document.getElementById('klantSelect').value;
+  if (idx === '') return;
+  const k = KLANTEN[parseInt(idx)];
+  if (!k) return;
+  sv('klantBedrijf', k.naam);
+  sv('klantContact', k.contact);
+  sv('klantAdres', k.adres);
+  sv('klantPlaats', k.plaats);
+  // Postcode niet in CRM data, leeg laten
+  autoSave();
+  showToast('👤 ' + k.naam + ' geselecteerd');
 }
 
 // Legacy functions (keep for compatibility)
