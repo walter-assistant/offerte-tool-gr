@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Offerte Tool — Ground Research BV</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root { --primary: #1e3a5f; --primary-light: #2a5a8f; --accent: #e8a838; --bg: #f5f7fa; --card: #fff; --border: #dde3ea; --text: #2c3e50; --muted: #7f8c9b; --success: #27ae60; --danger: #e74c3c; }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -93,9 +94,41 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* TOAST */
 .toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 13px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s; }
 .toast.show { transform: translateY(0); opacity: 1; }
+
+/* AUTH */
+.auth-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #0d1b2a 0%, #1e3a5f 40%, #4da6ff 100%); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.auth-card { background: #fff; border-radius: 12px; padding: 32px; width: 360px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,.3); }
+.auth-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
+.auth-card .form-group { margin-bottom: 12px; }
+.auth-card button { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.auth-card button:hover { background: var(--primary-light); }
+.auth-card .auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+.auth-card .auth-switch a { color: var(--primary); cursor: pointer; text-decoration: underline; }
+.auth-card .auth-error { color: var(--danger); font-size: 12px; margin-top: 8px; text-align: center; }
+
+/* OFFERTE SELECTOR */
+.offerte-bar { background: #f0f4f8; border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.offerte-bar select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; min-width: 200px; }
+.offerte-bar .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); background: #fff; }
+.offerte-bar .btn-sm:hover { background: #e8ecf0; }
+.save-status { margin-left: auto; font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
+
+<!-- ══════ AUTH OVERLAY ══════ -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <h2>⛏️ Offerte Tool</h2>
+    <div id="authForm">
+      <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="je@email.com"></div>
+      <div class="form-group"><label>Wachtwoord</label><input type="password" id="authPassword" placeholder="••••••••" minlength="6"></div>
+      <button onclick="doLogin()" id="authBtn">Inloggen</button>
+      <div class="auth-switch">Nog geen account? <a onclick="toggleAuth()">Registreren</a></div>
+      <div class="auth-error" id="authError"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════ HEADER ══════ -->
 <div class="header">
@@ -109,7 +142,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="importJSON()">📂 Import</button>
     <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="duplicateOfferte()">📋 Dupliceer</button>
     <button class="btn btn-danger" onclick="nieuweOfferte()">🗑️ Nieuw</button>
+    <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="doLogout()" title="Uitloggen">🚪</button>
   </div>
+</div>
+
+<!-- ══════ OFFERTE SELECTOR BAR ══════ -->
+<div class="offerte-bar" id="offerteBar">
+  <strong>📋 Offerte:</strong>
+  <select id="offerteSelect" onchange="switchOfferte()"></select>
+  <button class="btn-sm" onclick="nieuweOfferteCloud()">+ Nieuw</button>
+  <button class="btn-sm" onclick="renameOfferte()">✏️ Hernoem</button>
+  <button class="btn-sm" style="color:var(--danger)" onclick="deleteOfferteCloud()">🗑️ Verwijder</button>
+  <span class="save-status" id="saveStatus">✅ Opgeslagen</span>
 </div>
 
 <div class="container">
@@ -221,9 +265,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const sel = document.getElementById('prijslijstSelect');
   lijsten.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
-  loadState();
-  filterArtikelen();
-  renderOfferte();
+  // Auth init — app wordt geladen via showApp() na login
+  initAuth();
 });
 
 // ═══════════════════════════════════════════════
@@ -505,19 +548,190 @@ function exportPDF() {
 }
 
 // ═══════════════════════════════════════════════
-// SAVE / LOAD
+// SUPABASE AUTH + CLOUD STORAGE
 // ═══════════════════════════════════════════════
-function autoSave() {
-  const state = {
+const SUPABASE_URL = 'https://varflklvllrnrzhnbbpg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_U1N34WcxGPZSf9qDSHTC2g_2Ah_yR3s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentOfferteId = null;
+let allOffertes = [];
+let saveTimer = null;
+let isRegistering = false;
+
+// Auth
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { currentUser = session.user; showApp(); }
+  sb.auth.onAuthStateChange((ev, session) => {
+    if (session) { currentUser = session.user; showApp(); }
+    else { currentUser = null; document.getElementById('authOverlay').style.display = 'flex'; }
+  });
+}
+
+function toggleAuth() {
+  isRegistering = !isRegistering;
+  document.getElementById('authBtn').textContent = isRegistering ? 'Account aanmaken' : 'Inloggen';
+  document.querySelector('.auth-switch').innerHTML = isRegistering
+    ? 'Al een account? <a onclick="toggleAuth()">Inloggen</a>'
+    : 'Nog geen account? <a onclick="toggleAuth()">Registreren</a>';
+  document.getElementById('authError').textContent = '';
+}
+
+async function doLogin() {
+  const email = gv('authEmail'), pw = gv('authPassword');
+  if (!email || !pw) return;
+  document.getElementById('authBtn').disabled = true;
+  const { error } = isRegistering
+    ? await sb.auth.signUp({ email, password: pw })
+    : await sb.auth.signInWithPassword({ email, password: pw });
+  document.getElementById('authBtn').disabled = false;
+  if (error) document.getElementById('authError').textContent = error.message;
+}
+
+async function doLogout() {
+  await cloudSave();
+  await sb.auth.signOut();
+  currentUser = null; currentOfferteId = null; allOffertes = [];
+  document.getElementById('authOverlay').style.display = 'flex';
+}
+
+async function showApp() {
+  document.getElementById('authOverlay').style.display = 'none';
+  await loadOffertesList();
+  if (allOffertes.length > 0) {
+    currentOfferteId = allOffertes[0].id;
+    await loadOfferteFromCloud(currentOfferteId);
+  } else {
+    await nieuweOfferteCloud();
+  }
+  renderOfferteSelect();
+}
+
+// Offerte CRUD
+async function loadOffertesList() {
+  const { data } = await sb.from('offertes').select('id, name, updated_at').order('updated_at', { ascending: false });
+  allOffertes = data || [];
+}
+
+function renderOfferteSelect() {
+  const sel = document.getElementById('offerteSelect');
+  sel.innerHTML = allOffertes.map(o =>
+    `<option value="${o.id}" ${o.id === currentOfferteId ? 'selected' : ''}>${o.name}</option>`
+  ).join('');
+}
+
+async function switchOfferte() {
+  await cloudSave();
+  currentOfferteId = document.getElementById('offerteSelect').value;
+  await loadOfferteFromCloud(currentOfferteId);
+}
+
+async function loadOfferteFromCloud(id) {
+  const { data, error } = await sb.from('offertes').select('*').eq('id', id).single();
+  if (error || !data) return;
+  currentOfferteId = data.id;
+  const s = data.data || {};
+  offerte = s.offerte || { regels: [] };
+  nextId = s.nextId || 1;
+  if (s.prijslijst) document.getElementById('prijslijstSelect').value = s.prijslijst;
+  if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
+  else { ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats'].forEach(id => sv(id, '')); }
+  if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
+  else { ['projectNaam','projectKenmerk','projectLocatie'].forEach(id => sv(id, '')); }
+  sv('offerteDatum', s.datum || new Date().toISOString().split('T')[0]);
+  sv('offerteNummer', s.nummer || '');
+  sv('kortingPct', s.kortingPct || '0');
+  sv('opmerkingen', s.opmerkingen || '');
+  filterArtikelen();
+  renderOfferte();
+  setSaveStatus('✅ Geladen');
+}
+
+function getOfferteState() {
+  return {
     offerte, nextId,
-    prijslijst: document.getElementById('prijslijstSelect').value,
+    prijslijst: document.getElementById('prijslijstSelect')?.value,
     klant: { bedrijf: gv('klantBedrijf'), contact: gv('klantContact'), adres: gv('klantAdres'), postcode: gv('klantPostcode'), plaats: gv('klantPlaats') },
     project: { naam: gv('projectNaam'), kenmerk: gv('projectKenmerk'), locatie: gv('projectLocatie') },
     datum: gv('offerteDatum'), nummer: gv('offerteNummer'), kortingPct: gv('kortingPct'), opmerkingen: gv('opmerkingen')
   };
-  localStorage.setItem('gr_offerte', JSON.stringify(state));
 }
 
+async function cloudSave() {
+  if (!currentOfferteId || !currentUser) return;
+  setSaveStatus('💾 Opslaan...');
+  const state = getOfferteState();
+  const name = gv('offerteNummer') || gv('klantBedrijf') || 'Nieuwe Offerte';
+  const { error } = await sb.from('offertes').update({
+    name, data: state, updated_by: currentUser.id
+  }).eq('id', currentOfferteId);
+  if (error) { setSaveStatus('❌ Fout bij opslaan'); console.error(error); }
+  else { setSaveStatus('✅ Opgeslagen'); }
+}
+
+function autoSave() {
+  // Local cache
+  localStorage.setItem('gr_offerte', JSON.stringify(getOfferteState()));
+  // Debounced cloud save
+  setSaveStatus('✏️ Niet opgeslagen');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => cloudSave(), 1500);
+}
+
+function setSaveStatus(text) {
+  const el = document.getElementById('saveStatus');
+  if (el) el.textContent = text;
+}
+
+async function nieuweOfferteCloud() {
+  await cloudSave();
+  const { data, error } = await sb.from('offertes').insert({
+    name: 'Nieuwe Offerte',
+    data: { offerte: { regels: [] }, nextId: 1 },
+    created_by: currentUser.id,
+    updated_by: currentUser.id
+  }).select().single();
+  if (error) { showToast('❌ Fout bij aanmaken'); return; }
+  await loadOffertesList();
+  currentOfferteId = data.id;
+  // Reset form
+  offerte = { regels: [] }; nextId = 1;
+  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteNummer','opmerkingen'].forEach(id => sv(id, ''));
+  sv('kortingPct', '0');
+  document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
+  renderOfferteSelect();
+  filterArtikelen();
+  renderOfferte();
+  showToast('✅ Nieuwe offerte aangemaakt');
+}
+
+async function deleteOfferteCloud() {
+  if (!currentOfferteId) return;
+  if (!confirm('Weet je zeker dat je deze offerte wilt verwijderen?')) return;
+  await sb.from('offertes').delete().eq('id', currentOfferteId);
+  await loadOffertesList();
+  if (allOffertes.length > 0) {
+    currentOfferteId = allOffertes[0].id;
+    await loadOfferteFromCloud(currentOfferteId);
+  } else {
+    await nieuweOfferteCloud();
+  }
+  renderOfferteSelect();
+  showToast('🗑️ Offerte verwijderd');
+}
+
+async function renameOfferte() {
+  const name = prompt('Nieuwe naam voor deze offerte:', document.getElementById('offerteSelect').selectedOptions[0]?.text);
+  if (!name) return;
+  await sb.from('offertes').update({ name }).eq('id', currentOfferteId);
+  await loadOffertesList();
+  renderOfferteSelect();
+  showToast('✏️ Hernoemd');
+}
+
+// Legacy functions (keep for compatibility)
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem('gr_offerte'));
@@ -536,7 +750,8 @@ function loadState() {
 
 function exportJSON() {
   autoSave();
-  const blob = new Blob([localStorage.getItem('gr_offerte')], { type: 'application/json' });
+  const state = JSON.stringify(getOfferteState(), null, 2);
+  const blob = new Blob([state], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'offerte_' + (gv('offerteNummer') || 'backup') + '.json'; a.click(); URL.revokeObjectURL(a.href);
   showToast('💾 JSON geëxporteerd');
@@ -547,23 +762,46 @@ function importJSON() { document.getElementById('importFile').click(); }
 function doImport(event) {
   const file = event.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) { localStorage.setItem('gr_offerte', e.target.result); loadState(); filterArtikelen(); renderOfferte(); showToast('📂 Offerte geladen'); };
+  reader.onload = function(e) {
+    try {
+      const s = JSON.parse(e.target.result);
+      offerte = s.offerte || { regels: [] };
+      nextId = s.nextId || 1;
+      if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
+      if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
+      if (s.datum) sv('offerteDatum', s.datum);
+      if (s.nummer) sv('offerteNummer', s.nummer);
+      if (s.kortingPct) sv('kortingPct', s.kortingPct);
+      if (s.opmerkingen) sv('opmerkingen', s.opmerkingen);
+      filterArtikelen(); renderOfferte(); autoSave();
+      showToast('📂 Offerte geladen');
+    } catch(err) { showToast('❌ Ongeldig bestand'); }
+  };
   reader.readAsText(file); event.target.value = '';
 }
 
 function nieuweOfferte() {
-  if (!confirm('Nieuwe offerte starten? Huidige wordt gewist.')) return;
-  offerte = { regels: [] }; nextId = 1;
-  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteNummer','opmerkingen'].forEach(id => sv(id, ''));
-  sv('kortingPct', '0');
-  document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
-  renderOfferte(); autoSave(); showToast('🗑️ Nieuwe offerte gestart');
+  nieuweOfferteCloud();
 }
 
 function duplicateOfferte() {
-  const nr = gv('offerteNummer');
-  sv('offerteNummer', nr ? nr + '-kopie' : 'KOPIE');
-  autoSave(); showToast('📋 Offerte gedupliceerd');
+  const state = getOfferteState();
+  state.nummer = (state.nummer || '') + '-kopie';
+  (async () => {
+    const { data } = await sb.from('offertes').insert({
+      name: (state.nummer || 'Kopie'),
+      data: state,
+      created_by: currentUser.id,
+      updated_by: currentUser.id
+    }).select().single();
+    if (data) {
+      await loadOffertesList();
+      currentOfferteId = data.id;
+      sv('offerteNummer', state.nummer);
+      renderOfferteSelect();
+      showToast('📋 Offerte gedupliceerd');
+    }
+  })();
 }
 
 // ═══════════════════════════════════════════════
