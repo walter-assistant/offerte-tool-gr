@@ -1019,7 +1019,8 @@ async function cloudSave() {
   if (!currentOfferteId || !currentUser) return;
   setSaveStatus('💾 Opslaan...');
   const state = getOfferteState();
-  const name = gv('offerteNummer') || gv('klantBedrijf') || 'Nieuwe Offerte';
+  const parts = [gv('klantBedrijf'), gv('offerteNummer'), gv('projectNaam')].filter(Boolean);
+  const name = parts.length > 0 ? parts.join(' - ') : 'Nieuwe Offerte';
   const { error } = await sb.from('offertes').update({
     name, data: state, updated_by: currentUser.id
   }).eq('id', currentOfferteId);
