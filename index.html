@@ -1042,6 +1042,22 @@ function setSaveStatus(text) {
   if (el) el.textContent = text;
 }
 
+function generateOfferteNummer() {
+  var year = new Date().getFullYear();
+  var prefix = 'GR-' + year + '-';
+  var maxNum = 0;
+  allOffertes.forEach(function(o) {
+    if (o.data && o.data.nummer) {
+      var match = o.data.nummer.match(/GR-\d{4}-(\d+)/);
+      if (match) {
+        var num = parseInt(match[1]);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+  });
+  var next = String(maxNum + 1).padStart(3, '0');
+  return prefix + next;
+}
 async function nieuweOfferteCloud() {
   await cloudSave();
   const { data, error } = await sb.from('offertes').insert({
@@ -1055,7 +1071,8 @@ async function nieuweOfferteCloud() {
   currentOfferteId = data.id;
   // Reset form
   offerte = { regels: [] }; nextId = 1;
-  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteNummer','opmerkingen'].forEach(id => sv(id, ''));
+  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','opmerkingen'].forEach(id => sv(id, ''));
+  sv('offerteNummer', generateOfferteNummer());
   sv('kortingPct', '0');
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
   renderOfferteSelect();
