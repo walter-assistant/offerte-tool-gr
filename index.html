@@ -766,7 +766,7 @@ function exportPDF() {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Vrijheidweg 45  |  1521 RP Wormerveer  |  info@groundresearch.nl', M, 23);
-  doc.text('KvK: 37115498  |  BTW: NL815774866B01', M, 28);
+  doc.text('KvK: 37089931  |  BTW: NL808849840B01', M, 28);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.text('OFFERTE', W - M, 20, { align: 'right' });
@@ -896,7 +896,7 @@ function exportPDF() {
   y += 4;
   doc.text('Op al onze werkzaamheden zijn de Algemene Voorwaarden van Ground Research BV van toepassing.', M, y);
   y += 4;
-  doc.text('Ground Research BV  |  IBAN: NL...  |  KvK: 37115498  |  BTW: NL815774866B01', M, y);
+  doc.text('Ground Research BV  |  IBAN: NL...  |  KvK: 37089931  |  BTW: NL808849840B01', M, y);
 
   const naam = (gv('klantBedrijf') || 'offerte').replace(/\s+/g, '_');
   doc.save('Offerte_' + naam + '_' + gv('offerteDatum') + '.pdf');
