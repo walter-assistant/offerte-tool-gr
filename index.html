@@ -330,7 +330,7 @@ function addArtikel(r) {
 }
 
 function addCustomRow() {
-  offerte.regels.push({ id: nextId++, code: '', omschrijving: 'Nieuwe regel', eenheid: 'Stuk', categorie: 'Overig', prijs: 0, aantal: 1, custom: true });
+  offerte.regels.push({ id: nextId++, code: '', omschrijving: '', eenheid: 'Stuk', categorie: 'Overig', prijs: 0, aantal: 1, custom: true });
   renderOfferte();
   autoSave();
 }
@@ -344,7 +344,24 @@ function removeRegel(id) {
 function updateRegel(id, field, value) {
   const r = offerte.regels.find(r => r.id === id);
   if (r) { if (field === 'aantal' || field === 'prijs') r[field] = parseFloat(value) || 0; else r[field] = value; }
-  renderOfferte();
+  // Only re-render totals, NOT the full table (which kills focus/cursor)
+  if (field === 'aantal' || field === 'prijs') {
+    // Recalculate and update totals + line total
+    let subtotaal = 0;
+    offerte.regels.forEach(regel => { subtotaal += regel.aantal * regel.prijs; });
+    renderTotalen(subtotaal);
+    // Update this row's line total
+    const rows = document.querySelectorAll('.offerte-table tbody tr:not(.cat-row)');
+    rows.forEach(tr => {
+      const delBtn = tr.querySelector('.del-btn');
+      if (delBtn && delBtn.getAttribute('onclick') && delBtn.getAttribute('onclick').includes(id)) {
+        const totaalCell = tr.querySelectorAll('td.num');
+        if (totaalCell.length >= 3) {
+          totaalCell[2].innerHTML = '<span style="font-weight:600">€ ' + fmt(r.aantal * r.prijs) + '</span>';
+        }
+      }
+    });
+  }
   autoSave();
 }
 
@@ -374,8 +391,8 @@ function renderOfferte() {
       subtotaal += totaal;
       html += '<tr>' +
         '<td style="color:#aaa;font-size:10px">' + esc(r.code) + '</td>' +
-        '<td>' + (r.custom ? '<input value="' + esc(r.omschrijving) + '" oninput="updateRegel(' + r.id + ',\'omschrijving\',this.value)" style="border:1px dashed #ccc;width:100%">' : esc(r.omschrijving)) + '</td>' +
-        '<td>' + (r.custom ? '<input value="' + esc(r.eenheid) + '" oninput="updateRegel(' + r.id + ',\'eenheid\',this.value)" style="width:60px;border:1px dashed #ccc">' : esc(r.eenheid)) + '</td>' +
+        '<td>' + (r.custom ? '<input value="' + esc(r.omschrijving) + '" placeholder="Omschrijving..." oninput="updateRegel(' + r.id + ',\'omschrijving\',this.value)" autocomplete="off" autocorrect="off" spellcheck="false" style="border:1px dashed #ccc;width:100%;font-size:16px;padding:6px 8px">' : esc(r.omschrijving)) + '</td>' +
+        '<td>' + (r.custom ? '<input value="' + esc(r.eenheid) + '" oninput="updateRegel(' + r.id + ',\'eenheid\',this.value)" autocomplete="off" style="width:60px;border:1px dashed #ccc;font-size:16px;padding:6px">' : esc(r.eenheid)) + '</td>' +
         '<td class="num"><input type="number" value="' + r.aantal + '" min="0" step="1" onchange="updateRegel(' + r.id + ',\'aantal\',this.value)"></td>' +
         '<td class="num"><input type="number" value="' + r.prijs.toFixed(2) + '" min="0" step="0.01" onchange="updateRegel(' + r.id + ',\'prijs\',this.value)"></td>' +
         '<td class="num" style="font-weight:600">€ ' + fmt(totaal) + '</td>' +
