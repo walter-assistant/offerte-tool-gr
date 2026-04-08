@@ -749,9 +749,38 @@ function renderTotalen(subtotaal) {
 }
 
 // ═══════════════════════════════════════════════
+// GR LOGO
+// ═══════════════════════════════════════════════
+var GR_LOGO_URL = 'logo-gr.jpg';
+var GR_LOGO_DATA = null;
+function preloadLogo() {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+        GR_LOGO_DATA = c.toDataURL('image/jpeg', 0.92);
+      } catch(e) { console.warn('logo canvas fail', e); }
+      resolve();
+    };
+    img.onerror = function() { console.warn('logo not loaded'); resolve(); };
+    img.src = GR_LOGO_URL + '?v=' + Date.now();
+  });
+}
+function addGRLogo(doc, x, y, w, h) {
+  if (!GR_LOGO_DATA) return;
+  try { doc.addImage(GR_LOGO_DATA, 'JPEG', x, y, w, h); } catch(e) { console.warn('logo add fail', e); }
+}
+if (typeof window !== 'undefined') { window.addEventListener('load', preloadLogo); }
+
+// ═══════════════════════════════════════════════
 // PDF EXPORT
 // ═══════════════════════════════════════════════
-function exportPDF() {
+async function exportPDF() {
+  if (!GR_LOGO_DATA) { await preloadLogo(); }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
   const W = 210, M = 15, CW = W - 2*M;
@@ -767,13 +796,14 @@ function exportPDF() {
   doc.setFont('helvetica', 'normal');
   doc.text('Vrijheidweg 45  |  1521 RP Wormerveer  |  info@groundresearch.nl', M, 23);
   doc.text('KvK: 37089931  |  BTW: NL808849840B01', M, 28);
-  doc.setFontSize(22);
+  // Logo rechtsboven in de groene header
+  addGRLogo(doc, W - M - 32, 6, 32, 18);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('OFFERTE', W - M, 20, { align: 'right' });
-  doc.setFontSize(10);
+  doc.text('OFFERTE  ' + (gv('offerteNummer') || ''), W - M, 32, { align: 'right' });
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(gv('offerteNummer') || '', W - M, 27, { align: 'right' });
-  doc.text(formatDateNL(gv('offerteDatum')), W - M, 33, { align: 'right' });
+  doc.text(formatDateNL(gv('offerteDatum')), W - M, 36, { align: 'right' });
 
   y = 48;
   doc.setTextColor(0);
@@ -904,13 +934,14 @@ function exportPDF() {
   doc.addPage();
   let ay = 20;
   doc.setFillColor(45, 90, 30);
-  doc.rect(0, 0, 210, 16, 'F');
+  doc.rect(0, 0, 210, 18, 'F');
+  addGRLogo(doc, W - M - 24, 2, 24, 14);
   doc.setTextColor(255);
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Algemene Voorwaarden - Ground Research BV', M, 10);
+  doc.text('Algemene Voorwaarden - Ground Research BV', M, 11);
   doc.setTextColor(0);
-  ay = 26;
+  ay = 28;
 
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
