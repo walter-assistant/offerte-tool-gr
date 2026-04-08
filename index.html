@@ -898,6 +898,91 @@ function exportPDF() {
   y += 4;
   doc.text('Ground Research BV  |  IBAN: NL...  |  KvK: 37089931  |  BTW: NL808849840B01', M, y);
 
+  // -----------------------------------------------
+  // PAGINA 2: ALGEMENE VOORWAARDEN
+  // -----------------------------------------------
+  doc.addPage();
+  let ay = 20;
+  doc.setFillColor(45, 90, 30);
+  doc.rect(0, 0, 210, 16, 'F');
+  doc.setTextColor(255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Algemene Voorwaarden - Ground Research BV', M, 10);
+  doc.setTextColor(0);
+  ay = 26;
+
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Algemene voorwaarden voor het uitvoeren van de opdracht', M, ay);
+  ay += 7;
+  doc.setDrawColor(45, 90, 30);
+  doc.setLineWidth(0.4);
+  doc.line(M, ay - 3, 210 - M, ay - 3);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+
+  const avPunten = [
+    'Meerwerk zal alleen na overleg en toestemming van de opdrachtgever worden uitgevoerd.',
+    'De kosten van vergunningen en ontheffingen (zoals leges), indien deze door ons zullen worden verzorgd, zijn verrekenbaar.',
+    'De locatie is normaal toegankelijk zonder wachttijden en werkvergunningen. Eventuele toegang tot privéterreinen wordt door de opdrachtgever geregeld. Wachttijden buiten onze schuld worden verrekend tegen een minimaal tarief van € 350,00 per uur exclusief BTW.',
+    'De KLIC-meldingen worden uitgevoerd en verzorgd door opdrachtgever en/of Ground Research.',
+    'De boorlocaties worden aan de hand van de KLIC-gegevens bepaald door Ground Research.',
+    'Eventuele schade aan kabels en leidingen kan niet op Ground Research worden verhaald.',
+    'Ground Research is aansprakelijk voor maximaal het bedrag van de opdracht.',
+    'Alle werkzaamheden worden onder BRL 2000, BRL 2100 of BRL 11000 certificaat uitgevoerd.',
+    'Standaard worden alle scheidende lagen afgedicht volgens de BRL 2100 norm.',
+    'Onafhankelijkheid moet te allen tijde geborgd zijn - "Ground Research keurt dus geen eigen grond" (zie BRL 2000, BRL 2100 of BRL 11000, functiescheiding).',
+    'De projectleider van Ground Research beoordeelt of de aangeleverde gegevens voldoende zijn om de werkzaamheden conform de BRL-eis uit te voeren.',
+    'Garantie op ondergronds systeem: 10 jaar.',
+    'Voor klachten t.o.v. BRL-werkzaamheden kunt u terecht bij Ground Research BV.'
+  ];
+
+  avPunten.forEach(function(tekst) {
+    if (ay > 265) { doc.addPage(); ay = 22; }
+    const bulletX = M;
+    const textX = M + 4;
+    const maxW = CW - 4;
+    const regels = doc.splitTextToSize(tekst, maxW);
+    doc.text('\u2022', bulletX, ay);
+    doc.text(regels, textX, ay);
+    ay += regels.length * 4.2 + 1.5;
+  });
+
+  ay += 4;
+  if (ay > 250) { doc.addPage(); ay = 22; }
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Facturering', M, ay);
+  ay += 7;
+  doc.line(M, ay - 3, 210 - M, ay - 3);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('De kosten zullen volgens onderstaand schema worden verrekend:', M, ay);
+  ay += 5;
+
+  const factuurPunten = [
+    '50% van de totale kosten na ontvangst van de opdrachtbevestiging.',
+    '50% na oplevering van het werk.',
+    'Wekelijks aan de hand van het aantal geboorde meters.',
+    'Het factuurbedrag dient binnen 30 dagen op onze bankrekening te zijn overgemaakt.',
+    'Alle vermelde bedragen zijn exclusief BTW.',
+    'Dit voorstel geldt tot drie maanden na dato.'
+  ];
+  factuurPunten.forEach(function(tekst) {
+    if (ay > 270) { doc.addPage(); ay = 22; }
+    const regels = doc.splitTextToSize(tekst, CW - 4);
+    doc.text('\u2022', M, ay);
+    doc.text(regels, M + 4, ay);
+    ay += regels.length * 4.2 + 1;
+  });
+
+  doc.setTextColor(100);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Ground Research BV | Vrijheidweg 45, 1521 RP Wormerveer | KvK: 37089931 | BTW: NL808849840B01', M, 287);
+
   const naam = (gv('klantBedrijf') || 'offerte').replace(/\s+/g, '_');
   doc.save('Offerte_' + naam + '_' + gv('offerteDatum') + '.pdf');
   showToast('📄 PDF geëxporteerd');
