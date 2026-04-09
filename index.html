@@ -755,7 +755,7 @@ function renderTotalen(subtotaal) {
 // ═══════════════════════════════════════════════
 // GR LOGO
 // ═══════════════════════════════════════════════
-var GR_LOGO_URL = 'logo-gr.jpg';
+var GR_LOGO_URL = 'logo-gr.png';
 var GR_LOGO_DATA = null;
 function preloadLogo() {
   return new Promise(function(resolve) {
@@ -766,7 +766,7 @@ function preloadLogo() {
         var c = document.createElement('canvas');
         c.width = img.naturalWidth; c.height = img.naturalHeight;
         c.getContext('2d').drawImage(img, 0, 0);
-        GR_LOGO_DATA = c.toDataURL('image/jpeg', 0.92);
+        GR_LOGO_DATA = c.toDataURL('image/png');
       } catch(e) { console.warn('logo canvas fail', e); }
       resolve();
     };
@@ -776,7 +776,7 @@ function preloadLogo() {
 }
 function addGRLogo(doc, x, y, w, h) {
   if (!GR_LOGO_DATA) return;
-  try { doc.addImage(GR_LOGO_DATA, 'JPEG', x, y, w, h); } catch(e) { console.warn('logo add fail', e); }
+  try { doc.addImage(GR_LOGO_DATA, 'PNG', x, y, w, h); } catch(e) { console.warn('logo add fail', e); }
 }
 if (typeof window !== 'undefined') { window.addEventListener('load', preloadLogo); }
 
