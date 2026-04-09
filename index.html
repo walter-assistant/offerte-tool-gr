@@ -315,7 +315,7 @@ function closeBibModal() {
 }
 </script>
 <style>
-:root { --primary: #2d5a1e; --primary-light: #61a229; --accent: #e8a838; --bg: #f5f7fa; --card: #fff; --border: #dde3ea; --text: #2c3e50; --muted: #7f8c9b; --success: #47b754; --danger: #e74c3c; }
+:root { --primary: #5a9138; --primary-light: #7ec242; --accent: #e8a838; --bg: #f5f7fa; --card: #fff; --border: #dde3ea; --text: #2c3e50; --muted: #7f8c9b; --success: #47b754; --danger: #e74c3c; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
 
@@ -404,7 +404,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .toast.show { transform: translateY(0); opacity: 1; }
 
 /* AUTH */
-.auth-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1a3d0d 0%, #2d5a1e 40%, #61a229 100%); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.auth-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #2d5a1e 0%, #5a9138 40%, #7ec242 100%); display: flex; align-items: center; justify-content: center; z-index: 10000; }
 .auth-card { background: #fff; border-radius: 12px; padding: 32px; width: 360px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,.3); }
 .auth-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
 .auth-card .form-group { margin-bottom: 12px; }
@@ -790,7 +790,7 @@ async function exportPDF() {
   const W = 210, M = 15, CW = W - 2*M;
   let y = 15;
 
-  doc.setFillColor(45, 90, 30);
+  doc.setFillColor(90, 145, 56);
   doc.rect(0, 0, W, 38, 'F');
   doc.setTextColor(255);
   doc.setFontSize(18);
@@ -835,7 +835,7 @@ async function exportPDF() {
   y = Math.max(y, py) + 12;
 
   const cols = [M, M+55, M+100, M+120, M+148, M+CW];
-  doc.setFillColor(45, 90, 30);
+  doc.setFillColor(90, 145, 56);
   doc.rect(M, y, CW, 7, 'F');
   doc.setTextColor(255);
   doc.setFontSize(8);
@@ -890,7 +890,7 @@ async function exportPDF() {
   const btw = naKorting * 0.21;
   const totaal = naKorting + btw;
 
-  doc.setDrawColor(45, 90, 30);
+  doc.setDrawColor(90, 145, 56);
   doc.line(130, y, M+CW, y);
   y += 5;
   doc.setFontSize(9);
@@ -901,7 +901,7 @@ async function exportPDF() {
   doc.text('BTW (21%):', 132, y); doc.text('€ ' + fmt(btw), M+CW, y, { align: 'right' }); y += 6;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.setFillColor(45, 90, 30);
+  doc.setFillColor(90, 145, 56);
   doc.rect(128, y-4.5, CW-128+M, 8, 'F');
   doc.setTextColor(255);
   doc.text('Totaal incl. BTW:', 132, y+1); doc.text('€ ' + fmt(totaal), M+CW-2, y+1, { align: 'right' });
@@ -937,7 +937,7 @@ async function exportPDF() {
   // -----------------------------------------------
   doc.addPage();
   let ay = 20;
-  doc.setFillColor(45, 90, 30);
+  doc.setFillColor(90, 145, 56);
   doc.rect(0, 0, 210, 18, 'F');
   addGRLogo(doc, W - M - 24, 2, 24, 14);
   doc.setTextColor(255);
@@ -951,7 +951,7 @@ async function exportPDF() {
   doc.setFont('helvetica', 'bold');
   doc.text('Algemene voorwaarden voor het uitvoeren van de opdracht', M, ay);
   ay += 7;
-  doc.setDrawColor(45, 90, 30);
+  doc.setDrawColor(90, 145, 56);
   doc.setLineWidth(0.4);
   doc.line(M, ay - 3, 210 - M, ay - 3);
 
