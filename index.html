@@ -1158,11 +1158,29 @@ function setSaveStatus(text) {
   if (el) el.textContent = text;
 }
 
+async function generateNextOfferteNummer() {
+  // Fetch all offerte names + data to find highest GR-YYYY-NNN
+  const year = new Date().getFullYear();
+  const { data } = await sb.from('offertes').select('name, data');
+  let max = 0;
+  const re = new RegExp('GR-' + year + '-(\\d{3,})', 'i');
+  (data || []).forEach(row => {
+    const candidates = [row.name, row?.data?.nummer].filter(Boolean);
+    candidates.forEach(s => {
+      const m = String(s).match(re);
+      if (m) { const n = parseInt(m[1], 10); if (n > max) max = n; }
+    });
+  });
+  const next = String(max + 1).padStart(3, '0');
+  return 'GR-' + year + '-' + next;
+}
+
 async function nieuweOfferteCloud() {
   await cloudSave();
+  const nieuwNummer = await generateNextOfferteNummer();
   const { data, error } = await sb.from('offertes').insert({
-    name: 'Nieuwe Offerte',
-    data: { offerte: { regels: [] }, nextId: 1 },
+    name: nieuwNummer,
+    data: { offerte: { regels: [] }, nextId: 1, nummer: nieuwNummer, datum: new Date().toISOString().split('T')[0] },
     created_by: currentUser.id,
     updated_by: currentUser.id
   }).select().single();
@@ -1171,13 +1189,15 @@ async function nieuweOfferteCloud() {
   currentOfferteId = data.id;
   // Reset form
   offerte = { regels: [] }; nextId = 1;
-  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteNummer','opmerkingen'].forEach(id => sv(id, ''));
+  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','opmerkingen'].forEach(id => sv(id, ''));
+  sv('offerteNummer', nieuwNummer);
   sv('kortingPct', '0');
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
   renderOfferteSelect();
   filterArtikelen();
   renderOfferte();
-  showToast('✅ Nieuwe offerte aangemaakt');
+  await cloudSave();
+  showToast('✅ Nieuwe offerte: ' + nieuwNummer);
 }
 
 async function deleteOfferteCloud() {
