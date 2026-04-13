@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonic Rig Vergelijking - Ground Research BV</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+.header { background: linear-gradient(135deg, #5a9138, #3d6b25); color: white; padding: 30px; border-radius: 12px; margin-bottom: 24px; text-align: center; }
+.header h1 { font-size: 24px; margin-bottom: 6px; }
+.header p { opacity: 0.85; font-size: 14px; }
+.section-title { background: #5a9138; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 15px; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 4px; font-size: 13px; }
+th, td { padding: 8px 12px; text-align: center; border: 1px solid #e0e0e0; }
+th { background: #f8f8f8; font-weight: 600; color: #555; }
+td:first-child { text-align: left; font-weight: 500; background: #fafafa; min-width: 200px; }
+.machine-header { background: #eef5e8 !important; font-weight: 700; color: #3d6b25; font-size: 14px; }
+.highlight { background: #e8f5e1; font-weight: 700; }
+.na { color: #999; font-style: italic; }
+.best { color: #5a9138; font-weight: 700; }
+.price { color: #c0392b; font-weight: 700; }
+.badge { display: inline-block; background: #5a9138; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.badge-no { background: #ccc; }
+.footer { text-align: center; padding: 20px; color: #999; font-size: 12px; margin-top: 20px; }
+.notes { background: white; padding: 16px 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-size: 13px; line-height: 1.6; }
+.notes h3 { color: #5a9138; margin-bottom: 8px; }
+.notes ul { padding-left: 20px; }
+@media print {
+  body { padding: 0; background: white; }
+  .container { max-width: 100%; }
+  table { font-size: 11px; page-break-inside: avoid; }
+  .header { background: #5a9138 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section-title { background: #5a9138 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 768px) {
+  table { font-size: 11px; }
+  th, td { padding: 5px 6px; }
+  td:first-child { min-width: 120px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>🔧 Sonic Rig Vergelijking</h1>
+  <p>CRS 170 DUO · Boxer 150 · MRS 200 DUO · MRS XL MAX</p>
+  <p style="margin-top:8px; font-size:12px; opacity:0.7;">Ground Research BV — April 2026</p>
+</div>
+
+<!-- SONIC HEAD -->
+<div class="section-title">⚡ Sonic Drill Head</div>
+<table>
+  <tr>
+    <th>Specificatie</th>
+    <th class="machine-header">CRS 170 DUO<br><small>Royal Eijkelkamp</small></th>
+    <th class="machine-header">Boxer 150<br><small>Conrad Stanen</small></th>
+    <th class="machine-header">MRS 200 DUO<br><small>Royal Eijkelkamp</small></th>
+    <th class="machine-header">MRS XL MAX<br><small>SonicSampDrill</small></th>
+  </tr>
+  <tr>
+    <td>Sonic klasse</td>
+    <td>34k</td>
+    <td>~38k (Talpa RSS190)</td>
+    <td>40k</td>
+    <td class="best">50k</td>
+  </tr>
+  <tr>
+    <td>Max. frequentie</td>
+    <td>0-150 Hz</td>
+    <td>0-150 Hz</td>
+    <td>0-150 Hz</td>
+    <td>0-150 Hz</td>
+  </tr>
+  <tr>
+    <td>Oscillator output force</td>
+    <td>150 kN</td>
+    <td>190 kN</td>
+    <td>181 kN</td>
+    <td class="best">227 kN</td>
+  </tr>
+  <tr>
+    <td>Rotatie koppel ↻</td>
+    <td>2.650 Nm @ 185 bar</td>
+    <td>4.200 Nm @ 250 bar</td>
+    <td>3.900 Nm @ 185 bar</td>
+    <td class="best">5.605 Nm @ 240 bar</td>
+  </tr>
+  <tr>
+    <td>Rotatie koppel ↺</td>
+    <td>3.000 Nm @ 210 bar</td>
+    <td class="na">n.b.</td>
+    <td>4.900 Nm @ 230 bar</td>
+    <td class="best">7.200 Nm @ 310 bar</td>
+  </tr>
+  <tr>
+    <td>Max RPM</td>
+    <td>0-120</td>
+    <td>0-117</td>
+    <td>0-183</td>
+    <td>0-140</td>
+  </tr>
+  <tr>
+    <td>Head tilt max.</td>
+    <td>70°</td>
+    <td>60°</td>
+    <td class="best">90°</td>
+    <td class="best">90°</td>
+  </tr>
+  <tr>
+    <td>Demper type</td>
+    <td>Rubber (4×)</td>
+    <td class="na">n.b.</td>
+    <td>Luchtkussen</td>
+    <td>Luchtkussen</td>
+  </tr>
+  <tr>
+    <td>Max. hydraulische druk sonic</td>
+    <td>230 bar</td>
+    <td>250 bar</td>
+    <td>240 bar</td>
+    <td class="best">310 bar</td>
+  </tr>
+  <tr>
+    <td>Massa boorkop</td>
+    <td>600 kg</td>
+    <td class="na">n.b.</td>
+    <td>890 kg</td>
+    <td>1.200 kg</td>
+  </tr>
+  <tr>
+    <td>Trekkracht met sonic</td>
+    <td>5.000 daN</td>
+    <td>8.000 daN</td>
+    <td>6.000 daN</td>
+    <td class="best">10.000 daN</td>
+  </tr>
+  <tr>
+    <td>Drukkracht met sonic</td>
+    <td>5.000 daN</td>
+    <td>4.000 daN</td>
+    <td>6.000 daN</td>
+    <td class="best">10.000 daN</td>
+  </tr>
+  <tr>
+    <td>Trekkracht statisch</td>
+    <td>10.000 daN</td>
+    <td>8.000 daN</td>
+    <td>10.000 daN</td>
+    <td>10.000 daN</td>
+  </tr>
+  <tr>
+    <td>Drukkracht statisch</td>
+    <td>5.500 daN</td>
+    <td>4.000 daN</td>
+    <td>6.800 daN</td>
+    <td class="best">10.000 daN</td>
+  </tr>
+  <tr>
+    <td>Benodigd motorvermogen</td>
+    <td>127 kW (170 PK)</td>
+    <td>175 kW (238 PK)</td>
+    <td>140-150 kW (188-200 PK)</td>
+    <td>186-265 kW (250-355 PK)</td>
+  </tr>
+  <tr>
+    <td>DUO (wisselbaar rotary head)</td>
+    <td><span class="badge">✓ DUO</span></td>
+    <td><span class="badge badge-no">✗</span></td>
+    <td><span class="badge">✓ DUO</span></td>
+    <td><span class="badge badge-no">✗</span></td>
+  </tr>
+</table>
+
+<!-- 4-SPEED ROTARY HEAD (DUO) -->
+<div class="section-title">🔄 4-Speed Rotary Drill Head (DUO)</div>
+<table>
+  <tr>
+    <th>Specificatie</th>
+    <th>CRS 170 DUO</th>
+    <th>Boxer 150</th>
+    <th>MRS 200 DUO</th>
+    <th>MRS XL MAX</th>
+  </tr>
+  <tr>
+    <td>Koppelbereik</td>
+    <td>450 - 5.600 Nm</td>
+    <td class="na">n.v.t.</td>
+    <td>450 - 4.000 Nm</td>
+    <td class="na">n.v.t.</td>
+  </tr>
+  <tr>
+    <td>Toerentalbereik</td>
+    <td>65 - 840 rpm</td>
+    <td class="na">n.v.t.</td>
+    <td>105 - 950 rpm</td>
+    <td class="na">n.v.t.</td>
+  </tr>
+  <tr>
+    <td>Swivel doorlaat</td>
+    <td>35 mm</td>
+    <td class="na">n.v.t.</td>
+    <td>60 mm</td>
+    <td class="na">n.v.t.</td>
+  </tr>
+</table>
+
+<!-- RIG / MOTOR -->
+<div class="section-title">🚜 Rig & Motor</div>
+<table>
+  <tr>
+    <th>Specificatie</th>
+    <th>CRS 170 DUO</th>
+    <th>Boxer 150</th>
+    <th>MRS 200 DUO</th>
+    <th>MRS XL MAX</th>
+  </tr>
+  <tr>
+    <td>Motor</td>
+    <td>Caterpillar 4-cil</td>
+    <td>Volvo Penta TAD583 VE</td>
+    <td>Caterpillar 4-cil</td>
+    <td>Caterpillar 6-cil</td>
+  </tr>
+  <tr>
+    <td>Vermogen</td>
+    <td>129 kW (173 PK)</td>
+    <td>175 kW (238 PK)</td>
+    <td>140 kW (188 PK)</td>
+    <td class="best">200 kW (275 PK)</td>
+  </tr>
+  <tr>
+    <td>Emissienorm</td>
+    <td class="na">n.b.</td>
+    <td>Euro 6</td>
+    <td class="na">n.b.</td>
+    <td class="na">n.b.</td>
+  </tr>
+  <tr>
+    <td>Afmetingen ingeklapt (L×B×H)</td>
+    <td>8.850 × 2.310 × 2.995</td>
+    <td class="na">n.b.</td>
+    <td>8.850 × 2.310 × 2.995</td>
+    <td>8.850 × 2.310 × 2.995</td>
+  </tr>
+  <tr>
+    <td>Hoogte bij boren (max)</td>
+    <td>7.500 mm</td>
+    <td class="na">n.b.</td>
+    <td>7.500 mm</td>
+    <td>7.500 mm</td>
+  </tr>
+  <tr>
+    <td>Gewicht</td>
+    <td>10.000 - 16.500 kg</td>
+    <td class="na">n.b.</td>
+    <td>10.000 - 13.000 kg</td>
+    <td>~15.000 kg</td>
+  </tr>
+  <tr>
+    <td>Brandstoftank</td>
+    <td>170 L</td>
+    <td class="na">n.b. (geïntegreerd)</td>
+    <td>170 L</td>
+    <td>190 L</td>
+  </tr>
+  <tr>
+    <td>Load sensing hydrauliek</td>
+    <td>✓</td>
+    <td class="na">n.b.</td>
+    <td>✓</td>
+    <td>✓</td>
+  </tr>
+  <tr>
+    <td>Hogedruk waterpomp</td>
+    <td>19 L/min @ 210 bar</td>
+    <td>19 L/min @ 210 bar</td>
+    <td>19 L/min @ 210 bar</td>
+    <td>19 L/min @ 210 bar</td>
+  </tr>
+  <tr>
+    <td>Groot debiet waterpomp</td>
+    <td>285 L/min @ 70 bar</td>
+    <td>285 L/min @ 70 bar</td>
+    <td>285 L/min @ 70 bar</td>
+    <td>160 L/min @ 45 bar</td>
+  </tr>
+  <tr>
+    <td>Watertank</td>
+    <td>500 L (aluminium)</td>
+    <td class="na">n.b.</td>
+    <td>500 L (aluminium)</td>
+    <td>500 L (aluminium)</td>
+  </tr>
+  <tr>
+    <td>Rupsbanden</td>
+    <td>Rubber</td>
+    <td>Rubber gevulk. (400 mm)</td>
+    <td>Rubber</td>
+    <td>Rubber</td>
+  </tr>
+  <tr>
+    <td>Radio afstandsbediening</td>
+    <td>✓ (rijden)</td>
+    <td>✓ (alle functies)</td>
+    <td>✓ (rijden)</td>
+    <td>✓ (rijden)</td>
+  </tr>
+  <tr>
+    <td>Stempels</td>
+    <td class="na">n.b.</td>
+    <td>4× (slag 700 mm)</td>
+    <td class="na">n.b.</td>
+    <td class="na">n.b.</td>
+  </tr>
+  <tr>
+    <td>Compressor</td>
+    <td class="na">n.b.</td>
+    <td>✓ (geïntegreerd)</td>
+    <td class="na">n.b.</td>
+    <td class="na">n.b.</td>
+  </tr>
+  <tr>
+    <td>Besturing</td>
+    <td>Bedieningspaneel draaiarm</td>
+    <td>I-QAN / CANbus</td>
+    <td>Bedieningspaneel draaiarm</td>
+    <td>Bedieningspaneel draaiarm</td>
+  </tr>
+</table>
+
+<!-- MAST -->
+<div class="section-title">📐 Mast</div>
+<table>
+  <tr>
+    <th>Specificatie</th>
+    <th>CRS 170 DUO</th>
+    <th>Boxer 150</th>
+    <th>MRS 200 DUO</th>
+    <th>MRS XL MAX</th>
+  </tr>
+  <tr>
+    <td>Slag</td>
+    <td>5.200 / 5.500 mm</td>
+    <td>4.500 mm</td>
+    <td>5.200 / 5.500 mm</td>
+    <td>5.200 mm</td>
+  </tr>
+  <tr>
+    <td>Mast dump</td>
+    <td>1.000 mm</td>
+    <td class="na">n.b.</td>
+    <td>1.000 mm</td>
+    <td>1.000 mm</td>
+  </tr>
+  <tr>
+    <td>Trekkracht (pull up)</td>
+    <td>120 kN</td>
+    <td>80 kN</td>
+    <td>120 kN</td>
+    <td>120 kN</td>
+  </tr>
+  <tr>
+    <td>Drukkracht (pull down)</td>
+    <td>68 kN</td>
+    <td>40 kN</td>
+    <td>68 kN</td>
+    <td class="best">80 kN</td>
+  </tr>
+  <tr>
+    <td>Voersnelheid</td>
+    <td>27-36 m/min</td>
+    <td class="na">n.b.</td>
+    <td>27-36 m/min</td>
+    <td class="best">45 m/min</td>
+  </tr>
+  <tr>
+    <td>Breakout klem bereik</td>
+    <td>60-280 mm</td>
+    <td class="na">n.b.</td>
+    <td>60-280 mm</td>
+    <td class="best">60-350 mm</td>
+  </tr>
+  <tr>
+    <td>Breakout klemkracht</td>
+    <td>140 kN</td>
+    <td class="na">n.b.</td>
+    <td>140 kN</td>
+    <td class="best">250 kN</td>
+  </tr>
+  <tr>
+    <td>Breakout koppel</td>
+    <td>38 kNm</td>
+    <td class="na">n.b.</td>
+    <td>38 kNm</td>
+    <td class="best">78 kNm</td>
+  </tr>
+  <tr>
+    <td>Breakout type</td>
+    <td>Triple floating</td>
+    <td class="na">n.b.</td>
+    <td>Triple floating</td>
+    <td>Double hydraulisch</td>
+  </tr>
+  <tr>
+    <td>Hoofdlier</td>
+    <td>3.600 daN, 35 m/min, 50 m</td>
+    <td>500 daN, 50 m kabel Ø8mm</td>
+    <td>3.600 daN, 35 m/min, 30 m</td>
+    <td>1.000 daN, 100 m/min, 100 m</td>
+  </tr>
+  <tr>
+    <td>Wireline lier</td>
+    <td class="na">—</td>
+    <td class="na">—</td>
+    <td>1.000 daN, 100 m/min, 200 m</td>
+    <td class="na">optioneel (jibboom)</td>
+  </tr>
+  <tr>
+    <td>Staafopslag / handler</td>
+    <td>✓</td>
+    <td class="na">n.b.</td>
+    <td>✓</td>
+    <td>✓</td>
+  </tr>
+</table>
+
+<!-- OPTIES -->
+<div class="section-title">🔩 Opties (standaard beschikbaar)</div>
+<table>
+  <tr>
+    <th>Optie</th>
+    <th>CRS 170 DUO</th>
+    <th>Boxer 150</th>
+    <th>MRS 200 DUO</th>
+    <th>MRS XL MAX</th>
+  </tr>
+  <tr>
+    <td>SPT auto drop hammer</td>
+    <td>optie</td>
+    <td class="na">n.b.</td>
+    <td>optie</td>
+    <td>optie</td>
+  </tr>
+  <tr>
+    <td>Casing lifter (200 kN)</td>
+    <td>optie</td>
+    <td class="na">n.b.</td>
+    <td>optie</td>
+    <td>optie</td>
+  </tr>
+  <tr>
+    <td>Modderpompen</td>
+    <td>283 L @ 70 bar (optie)</td>
+    <td>283 L/min @ 15 bar (standaard)</td>
+    <td>283 L @ 70 bar (optie)</td>
+    <td>570 L @ 45 bar (optie)</td>
+  </tr>
+  <tr>
+    <td>Stalen rupsbanden</td>
+    <td>optie</td>
+    <td class="na">n.b.</td>
+    <td>optie</td>
+    <td>optie</td>
+  </tr>
+  <tr>
+    <td>ManipAll (magnetische staaflader)</td>
+    <td>250 (optie)</td>
+    <td class="na">n.b.</td>
+    <td>250 (optie)</td>
+    <td>300 (optie)</td>
+  </tr>
+  <tr>
+    <td>Veiligheidskooi</td>
+    <td>optie</td>
+    <td class="na">n.b.</td>
+    <td>optie</td>
+    <td>optie</td>
+  </tr>
+  <tr>
+    <td>Draaibare jibboom</td>
+    <td>optie</td>
+    <td class="na">n.b.</td>
+    <td>optie</td>
+    <td>optie (met 2e lier)</td>
+  </tr>
+</table>
+
+<!-- PRIJS -->
+<div class="section-title">💰 Prijsindicatie</div>
+<table>
+  <tr>
+    <th>Machine</th>
+    <th>CRS 170 DUO</th>
+    <th>Boxer 150</th>
+    <th>MRS 200 DUO</th>
+    <th>MRS XL MAX</th>
+  </tr>
+  <tr>
+    <td>Prijs (excl. BTW)</td>
+    <td class="na">op aanvraag</td>
+    <td class="price">€ 572.500</td>
+    <td class="na">op aanvraag</td>
+    <td class="na">op aanvraag</td>
+  </tr>
+  <tr>
+    <td>Leverancier</td>
+    <td>Royal Eijkelkamp, Giesbeek</td>
+    <td>Conrad Stanen, Emmeloord</td>
+    <td>Royal Eijkelkamp, Giesbeek</td>
+    <td>SonicSampDrill, Giesbeek</td>
+  </tr>
+  <tr>
+    <td>Levering</td>
+    <td class="na">—</td>
+    <td>Ex Works, nader overeen te komen</td>
+    <td class="na">—</td>
+    <td class="na">—</td>
+  </tr>
+</table>
+
+<div class="notes">
+  <h3>📝 Opmerkingen</h3>
+  <ul>
+    <li>De <strong>Boxer 150</strong> (Conrad Stanen, offerte 30-03-2026, €572.500) heeft een Talpa RSS190 sonic boorkop. Sterke sonic force (190 kN) maar kortere slag (4,5 m vs 5,2 m) en lagere mast trek-/drukkracht dan de Eijkelkamps.</li>
+    <li>De <strong>MRS XL MAX</strong> wordt verkocht via SonicSampDrill (zelfde locatie als Royal Eijkelkamp in Giesbeek, maar apart merk).</li>
+    <li>De <strong>CRS 170</strong> en <strong>MRS 200</strong> zijn beschikbaar als DUO — met wisselbaar sonic + rotary head op trolleyboard. Handig voor combinatie sonic sampling + diamantkernboren in hetzelfde boorgat.</li>
+    <li>De <strong>MRS XL MAX</strong> springt eruit op kracht: dubbele breakout klem (78 kNm vs 38 kNm), 50k head, en 10.000 daN trek/druk met sonic — maar is ook de zwaarste en duurste in onderhoud.</li>
+    <li>Alle Eijkelkamp machines zijn leverbaar met service-contracten (Start / Pro / Royal) incl. track & trace.</li>
+  </ul>
+</div>
+
+<div class="footer">
+  Ground Research BV · Vrijheidweg 45, 1521 RP Wormerveer · Vergelijking opgesteld april 2026
+</div>
+
+</div>
+</body>
+</html>
