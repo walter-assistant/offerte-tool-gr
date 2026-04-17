@@ -378,6 +378,31 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .btn-outline:hover { background: var(--bg); }
 .btn-sm { padding: 4px 8px; font-size: 11px; }
 
+/* TABS */
+.tab-bar { display:flex; gap:0; background:var(--card); border-bottom:2px solid var(--primary); margin:0 0 16px 0; border-radius:8px 8px 0 0; overflow:hidden; }
+.tab-btn { flex:1; padding:12px 16px; font-size:14px; font-weight:600; border:none; background:none; cursor:pointer; color:var(--muted); transition:all .2s; text-align:center; }
+.tab-btn:hover { background:rgba(90,145,56,.08); }
+.tab-btn.active { color:var(--primary); background:rgba(90,145,56,.12); border-bottom:3px solid var(--primary); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* PVA FORM */
+.pva-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:700px) { .pva-grid { grid-template-columns:1fr; } }
+.pva-card { background:var(--card); border-radius:8px; border:1px solid var(--border); }
+.pva-card-header { padding:10px 14px; font-weight:700; font-size:13px; color:var(--primary); border-bottom:1px solid var(--border); background:rgba(90,145,56,.05); border-radius:8px 8px 0 0; }
+.pva-card-body { padding:12px 14px; }
+.pva-check-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:6px; }
+.pva-check label { display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; padding:4px 0; }
+.pva-check input[type=checkbox] { accent-color:var(--primary); width:16px; height:16px; }
+.pva-radio label { display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; padding:4px 0; }
+.pva-radio input[type=radio] { accent-color:var(--primary); width:16px; height:16px; }
+.pva-field { margin-bottom:8px; }
+.pva-field label { display:block; font-size:11px; font-weight:600; color:var(--muted); margin-bottom:3px; text-transform:uppercase; letter-spacing:.5px; }
+.pva-field input, .pva-field select, .pva-field textarea { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+.pva-field textarea { resize:vertical; min-height:60px; }
+.pva-section-title { font-size:12px; font-weight:700; color:var(--primary); margin:12px 0 6px; text-transform:uppercase; letter-spacing:.5px; }
+
 /* OFFERTE TABEL */
 .offerte-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .offerte-table th { background: var(--primary); color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
@@ -484,6 +509,15 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <div class="container">
 
+<!-- ══════ TAB BAR ══════ -->
+<div class="tab-bar">
+  <div class="tab-btn active" onclick="switchTab('offerte')">📋 Offerte</div>
+  <div class="tab-btn" onclick="switchTab('pva')">📑 Plan van Aanpak</div>
+</div>
+
+<!-- ══════ TAB: OFFERTE ══════ -->
+<div id="tabOfferte" class="tab-content active">
+
 <!-- ══════ 1. PRIJSLIJST + DATUM + NUMMER ══════ -->
 <div class="section">
   <div class="top-bar">
@@ -577,6 +611,266 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
   </div>
 </div>
+
+</div><!-- tabOfferte -->
+
+<!-- ══════ TAB: PLAN VAN AANPAK ══════ -->
+<div id="tabPva" class="tab-content">
+
+<div class="section">
+  <div class="card">
+    <div class="card-header">📋 Plan van Aanpak — BRL 2100
+      <span style="float:right">
+        <button class="btn btn-sm btn-success" onclick="exportPvaPDF()">📄 PDF</button>
+        <button class="btn btn-sm btn-outline" onclick="fillPvaFromOfferte()">⬅️ Vul vanuit offerte</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Projectgegevens -->
+<div class="pva-grid">
+  <div class="pva-card">
+    <div class="pva-card-header">📍 Projectgegevens</div>
+    <div class="pva-card-body">
+      <div class="pva-field"><label>Klantnaam</label><input id="pvaKlant" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Projectnummer</label><input id="pvaProjectnummer" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Projectleider</label><input id="pvaProjectleider" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Telefoonnummer contactpersoon</label><input id="pvaTelefoon" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Locatie opdracht</label><input id="pvaLocatie" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Bevoegd gezag</label><input id="pvaBevoegdGezag" value="Gemeente" oninput="pvaSave()"></div>
+    </div>
+  </div>
+  <div class="pva-card">
+    <div class="pva-card-header">📅 Planning</div>
+    <div class="pva-card-body">
+      <div class="pva-field"><label>Datum uitvoering</label><input type="date" id="pvaDatumUitvoering" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Datum transport klaar zetten</label><input type="date" id="pvaDatumTransport" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Start boorwerk</label><input type="date" id="pvaDatumStart" oninput="pvaSave()"></div>
+      <div class="pva-field"><label>Eind boorwerk</label><input type="date" id="pvaDatumEind" oninput="pvaSave()"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Doel & Beschrijving -->
+<div class="pva-grid" style="margin-top:12px">
+  <div class="pva-card">
+    <div class="pva-card-header">🎯 Doel werkzaamheden</div>
+    <div class="pva-card-body">
+      <div class="pva-field"><label>Doel</label>
+        <select id="pvaDoel" oninput="pvaSave()">
+          <option value="">— Selecteer —</option>
+          <option>Boren voor milieuwerkzaamheden</option>
+          <option>Boringen</option>
+          <option>Boringen door puinverharding</option>
+          <option>Boringen en Peilbuizen weg drukken</option>
+          <option>Boringen voor stortplaats onderzoek</option>
+          <option>Filtersplaatsen voor bronneringswerkzaamheden</option>
+          <option>Peilbuizen herplaatsen</option>
+          <option>Peilbuizen weg drukken</option>
+          <option>Voorboren voor Sonderwagen</option>
+          <option>Waterbodemonderzoek</option>
+          <option>Waterbron boren</option>
+          <option>Grootschalig verkennend onderzoek</option>
+          <option>Extensometers en inclinometers plaatsen</option>
+          <option>Extensometers plaatsen</option>
+          <option>Inclinometers plaatsen</option>
+          <option>Peilbuizen plaatsen incl boorbeschrijving</option>
+          <option>Overboren van lus en afgrouten</option>
+          <option>Ap04 onderzoek</option>
+        </select>
+      </div>
+      <div class="pva-field"><label>Beschrijving werkzaamheden</label><textarea id="pvaBeschrijving" oninput="pvaSave()" rows="3"></textarea></div>
+    </div>
+  </div>
+  <div class="pva-card">
+    <div class="pva-card-header">📜 Scope & BRL</div>
+    <div class="pva-card-body">
+      <div class="pva-section-title">Scope</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaScope" value="A" onchange="pvaSave()"> Scope A — verdringend boren (Sonic)</label>
+        <label><input type="radio" name="pvaScope" value="B" onchange="pvaSave()"> Scope B — waterdrukboren (Spoelboren)</label>
+      </div>
+      <div class="pva-section-title">BRL's</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="brl2001" onchange="pvaSave()"> BRL 2001</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="brl2002" onchange="pvaSave()"> BRL 2002</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="brl2003" onchange="pvaSave()"> BRL 2003</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="brl2100" onchange="pvaSave()"> BRL 2100</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="brl11000" onchange="pvaSave()"> BRL 11000 Scope 3b</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="geenBrl" onchange="pvaSave()"> Geen BRL werk</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Team -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">👷 Team op locatie</div>
+  <div class="pva-card-body">
+    <div class="pva-check-grid" id="pvaTeamGrid">
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Sander de Roo" onchange="pvaSave()"> Sander de Roo</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Michel Fernandez" onchange="pvaSave()"> Michel Fernandez</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Maarten vd Weerd" onchange="pvaSave()"> Maarten vd Weerd</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Pim Groot" onchange="pvaSave()"> Pim Groot</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Richard Brink" onchange="pvaSave()"> Richard Brink</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Rene Roeleveld" onchange="pvaSave()"> Rene Roeleveld</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Jeroen Kipp" onchange="pvaSave()"> Jeroen Kipp</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Mark Boon" onchange="pvaSave()"> Mark Boon</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Thijs Schermer" onchange="pvaSave()"> Thijs Schermer</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Dion Koopman" onchange="pvaSave()"> Dion Koopman</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Edsel Welvaart" onchange="pvaSave()"> Edsel Welvaart</label></div>
+      <div class="pva-check"><label><input type="checkbox" data-pva-team="Steven Dubois" onchange="pvaSave()"> Steven Dubois</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Boormethode & Materiaal -->
+<div class="pva-grid" style="margin-top:12px">
+  <div class="pva-card">
+    <div class="pva-card-header">🔩 Boormethode & Machine</div>
+    <div class="pva-card-body">
+      <div class="pva-section-title">Boormethode</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="methHandmatig" onchange="pvaSave()"> Handmatig</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="methSpoelboren" onchange="pvaSave()"> Spoelboren</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="methSonicML" onchange="pvaSave()"> Sonic ML</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="methSonicML250" onchange="pvaSave()"> Sonic ML250</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="methKraan" onchange="pvaSave()"> Kraan mee voor graafwerk</label></div>
+      </div>
+      <div class="pva-section-title">Boorbuis type</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGP63" onchange="pvaSave()"> GP63 (ID 40mm / OD 63mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGP88" onchange="pvaSave()"> GP88 (ID 65mm / OD 88mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGP100" onchange="pvaSave()"> GP100TR (ID 75mm / OD 107mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGD3" onchange="pvaSave()"> GD3 Inch (ID 44mm / OD 76mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGD4" onchange="pvaSave()"> GD4 Inch (ID 70mm / OD 105mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGD45" onchange="pvaSave()"> GD4.5 Inch (ID 83mm / OD 114mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisGD7" onchange="pvaSave()"> GD7 Inch (ID 150mm / OD 180mm)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisSpoelboor140" onchange="pvaSave()"> Spoelboorbuis 140mm</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisSpoelboor150" onchange="pvaSave()"> Spoelboorbuis 150mm</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="buisCustom" onchange="pvaSave()"> Custom buis</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="pva-card">
+    <div class="pva-card-header">🧱 Filterbuis & Materiaal</div>
+    <div class="pva-card-body">
+      <div class="pva-section-title">Filterbuis type</div>
+      <div class="pva-grid" style="grid-template-columns:1fr 1fr;gap:4px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">PVC</div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterPvc32" onchange="pvaSave()"> 32mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterPvc40" onchange="pvaSave()"> 40mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterPvc50" onchange="pvaSave()"> 50mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterPvc63" onchange="pvaSave()"> 63mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterPvc110" onchange="pvaSave()"> 110mm</label></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">HDPE</div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterHdpe32" onchange="pvaSave()"> 32mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterHdpe40" onchange="pvaSave()"> 40mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterHdpe50" onchange="pvaSave()"> 50mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterHdpe63" onchange="pvaSave()"> 63mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterHdpe110" onchange="pvaSave()"> 110mm</label></div>
+          <div class="pva-check"><label><input type="checkbox" data-pva="filterInclinobuis" onchange="pvaSave()"> Inclinobuizen</label></div>
+        </div>
+      </div>
+      <div class="pva-section-title">Grout pomp</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="pompWorm" onchange="pvaSave()"> Wormpomp PFT</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pompHandmixer" onchange="pvaSave()"> Handmixer</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pompVoormixer" onchange="pvaSave()"> Voormixer</label></div>
+      </div>
+      <div class="pva-section-title">Afdichtingsmateriaal</div>
+      <div class="pva-field"><input id="pvaAfdichting" placeholder="bijv. bentoniet, grout" oninput="pvaSave()"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Locatie & Veiligheid -->
+<div class="pva-grid" style="margin-top:12px">
+  <div class="pva-card">
+    <div class="pva-card-header">📍 Locatie omstandigheden</div>
+    <div class="pva-card-body">
+      <div class="pva-section-title">Werkwater</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaWerkwater" value="ja" onchange="pvaSave()"> Ja</label>
+        <label><input type="radio" name="pvaWerkwater" value="nee" onchange="pvaSave()"> Nee</label>
+        <label><input type="radio" name="pvaWerkwater" value="ibc" onchange="pvaSave()"> IBC mee</label>
+        <label><input type="radio" name="pvaWerkwater" value="blauwvatten" onchange="pvaSave()"> Blauwvatten mee</label>
+      </div>
+      <div class="pva-section-title">Werkstroom</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaWerkstroom" value="220v" onchange="pvaSave()"> Ja 220V</label>
+        <label><input type="radio" name="pvaWerkstroom" value="380v" onchange="pvaSave()"> Ja 380V</label>
+        <label><input type="radio" name="pvaWerkstroom" value="nee" onchange="pvaSave()"> Nee</label>
+        <label><input type="radio" name="pvaWerkstroom" value="aggregaat" onchange="pvaSave()"> Aggregaat mee</label>
+      </div>
+      <div class="pva-section-title">Uitkomende grond</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaGrond" value="achterlaten" onchange="pvaSave()"> Achterlaten op locatie</label>
+        <label><input type="radio" name="pvaGrond" value="meenemen" onchange="pvaSave()"> Meenemen</label>
+        <label><input type="radio" name="pvaGrond" value="inzicht" onchange="pvaSave()"> Naar eigen inzicht</label>
+        <label><input type="radio" name="pvaGrond" value="opdrachtgever" onchange="pvaSave()"> Afvoer door opdrachtgever</label>
+        <label><input type="radio" name="pvaGrond" value="container" onchange="pvaSave()"> Container geregeld door opdrachtgever</label>
+      </div>
+      <div class="pva-section-title">Meldingen</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="oloMelding" onchange="pvaSave()"> OLO Melding gedaan</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="klicMelding" onchange="pvaSave()"> KLIC melding gedaan</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="bodemloket" onchange="pvaSave()"> Bodemloket gecheckt</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="keurBeschermd" onchange="pvaSave()"> Keur gecheckt (beschermd gebied)</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="pva-card">
+    <div class="pva-card-header">⚠️ Veiligheid & Verontreiniging</div>
+    <div class="pva-card-body">
+      <div class="pva-section-title">PBM's & Veiligheid</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="pbmStandaard" onchange="pvaSave()" checked> Standaard PBM's (helm, werkschoenen)</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pbmPid" onchange="pvaSave()"> PID meter</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pbmGasmasker" onchange="pvaSave()"> Gasmasker P3</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pbmOverall" onchange="pvaSave()"> Saneringsoverall verplicht</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="pbmFilm" onchange="pvaSave()"> Instructiefilm kijken</label></div>
+      </div>
+      <div class="pva-section-title">Verontreiniging</div>
+      <div class="pva-check-grid">
+        <div class="pva-check"><label><input type="checkbox" data-pva="vVocl" onchange="pvaSave()"> VOCL</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vAsbest" onchange="pvaSave()"> Asbest</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vZwareMetalen" onchange="pvaSave()"> Zware metalen</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vOlie" onchange="pvaSave()"> Olieproducten</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vZink" onchange="pvaSave()"> Zink</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vLood" onchange="pvaSave()"> Lood</label></div>
+        <div class="pva-check"><label><input type="checkbox" data-pva="vAnders" onchange="pvaSave()"> Anders</label></div>
+      </div>
+      <div class="pva-field" style="margin-top:8px"><label>Specifiek beleid / opmerkingen</label><textarea id="pvaVeiligheidOpmerking" rows="2" oninput="pvaSave()"></textarea></div>
+      <div class="pva-section-title">Bodemonderzoek aanwezig?</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaBodemonderzoek" value="ja" onchange="pvaSave()"> Ja</label>
+        <label><input type="radio" name="pvaBodemonderzoek" value="nee" onchange="pvaSave()"> Nee</label>
+        <label><input type="radio" name="pvaBodemonderzoek" value="nvt" onchange="pvaSave()"> NVT</label>
+      </div>
+      <div class="pva-section-title">Verloren casing plaatsen?</div>
+      <div class="pva-radio">
+        <label><input type="radio" name="pvaCasing" value="ja" onchange="pvaSave()"> Ja</label>
+        <label><input type="radio" name="pvaCasing" value="nee" onchange="pvaSave()"> Nee</label>
+        <label><input type="radio" name="pvaCasing" value="nvt" onchange="pvaSave()"> NVT</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PvA: Bodemenergielussen -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">🌡️ Bodemenergie lussen (optioneel)</div>
+  <div class="pva-card-body">
+    <div class="pva-field"><label>Aantal lussen incl. diameter</label><input id="pvaLussen" oninput="pvaSave()" placeholder="bijv. 4x 40mm dubbel-U"></div>
+  </div>
+</div>
+
+</div><!-- tabPva -->
 
 </div><!-- container -->
 
@@ -1130,19 +1424,24 @@ async function loadOfferteFromCloud(id) {
   sv('offerteNummer', s.nummer || '');
   sv('kortingPct', s.kortingPct || '0');
   sv('opmerkingen', s.opmerkingen || '');
+  // Load PvA data if present
+  if (s.pva) { try { loadPvaState(s.pva); } catch(e) {} }
   filterArtikelen();
   renderOfferte();
   setSaveStatus('✅ Geladen');
 }
 
 function getOfferteState() {
-  return {
+  const state = {
     offerte, nextId,
     prijslijst: document.getElementById('prijslijstSelect')?.value,
     klant: { bedrijf: gv('klantBedrijf'), contact: gv('klantContact'), adres: gv('klantAdres'), postcode: gv('klantPostcode'), plaats: gv('klantPlaats') },
     project: { naam: gv('projectNaam'), kenmerk: gv('projectKenmerk'), locatie: gv('projectLocatie') },
     datum: gv('offerteDatum'), nummer: gv('offerteNummer'), kortingPct: gv('kortingPct'), opmerkingen: gv('opmerkingen')
   };
+  // Include PvA data if present
+  try { const p = getPvaState(); if (p && Object.keys(p).length > 0) state.pva = p; } catch(e) {}
+  return state;
 }
 
 async function cloudSave() {
@@ -1598,6 +1897,276 @@ function openBibModal() {
 function closeBibModal() {
   document.getElementById('bibModal').style.display = 'none';
 }
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab === 'offerte' && i === 0) || (tab === 'pva' && i === 1));
+  });
+  document.getElementById('tabOfferte').classList.toggle('active', tab === 'offerte');
+  document.getElementById('tabPva').classList.toggle('active', tab === 'pva');
+  if (tab === 'pva' && currentOfferteId) pvaLoadFromCloud();
+}
+
+// ═══════════════════════════════════════════════
+// PLAN VAN AANPAK — STATE
+// ═══════════════════════════════════════════════
+let pvaState = {};
+let pvaSaveTimer = null;
+
+function getPvaState() {
+  const s = {};
+  ['pvaKlant','pvaProjectnummer','pvaProjectleider','pvaTelefoon','pvaLocatie','pvaBevoegdGezag',
+   'pvaDatumUitvoering','pvaDatumTransport','pvaDatumStart','pvaDatumEind',
+   'pvaDoel','pvaBeschrijving','pvaAfdichting','pvaVeiligheidOpmerking','pvaLussen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) s[id] = el.value;
+  });
+  s.checks = {};
+  document.querySelectorAll('[data-pva]').forEach(cb => {
+    s.checks[cb.getAttribute('data-pva')] = cb.checked;
+  });
+  s.team = [];
+  document.querySelectorAll('[data-pva-team]').forEach(cb => {
+    if (cb.checked) s.team.push(cb.getAttribute('data-pva-team'));
+  });
+  s.radios = {};
+  ['pvaScope','pvaWerkwater','pvaWerkstroom','pvaGrond','pvaBodemonderzoek','pvaCasing'].forEach(name => {
+    const checked = document.querySelector('input[name="' + name + '"]:checked');
+    s.radios[name] = checked ? checked.value : '';
+  });
+  return s;
+}
+
+function loadPvaState(s) {
+  if (!s) return;
+  ['pvaKlant','pvaProjectnummer','pvaProjectleider','pvaTelefoon','pvaLocatie','pvaBevoegdGezag',
+   'pvaDatumUitvoering','pvaDatumTransport','pvaDatumStart','pvaDatumEind',
+   'pvaDoel','pvaBeschrijving','pvaAfdichting','pvaVeiligheidOpmerking','pvaLussen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && s[id] !== undefined) el.value = s[id];
+  });
+  if (s.checks) {
+    document.querySelectorAll('[data-pva]').forEach(cb => {
+      const key = cb.getAttribute('data-pva');
+      if (s.checks[key] !== undefined) cb.checked = s.checks[key];
+    });
+  }
+  if (s.team) {
+    document.querySelectorAll('[data-pva-team]').forEach(cb => {
+      cb.checked = s.team.includes(cb.getAttribute('data-pva-team'));
+    });
+  }
+  if (s.radios) {
+    Object.entries(s.radios).forEach(([name, val]) => {
+      if (val) {
+        const r = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
+        if (r) r.checked = true;
+      }
+    });
+  }
+}
+
+function pvaSave() {
+  pvaState = getPvaState();
+  setSaveStatus('\u270f\ufe0f Niet opgeslagen');
+  if (pvaSaveTimer) clearTimeout(pvaSaveTimer);
+  pvaSaveTimer = setTimeout(() => pvaSaveToCloud(), 1500);
+}
+
+async function pvaSaveToCloud() {
+  if (!currentOfferteId || !currentUser) return;
+  setSaveStatus('\ud83d\udcbe Opslaan...');
+  // Save PvA inside the existing data JSONB field
+  const { data: row } = await sb.from('offertes').select('data').eq('id', currentOfferteId).single();
+  const existingData = row?.data || {};
+  existingData.pva = pvaState;
+  const { error } = await sb.from('offertes').update({
+    data: existingData,
+    updated_by: currentUser.id
+  }).eq('id', currentOfferteId);
+  if (error) { setSaveStatus('\u274c PvA opslaan mislukt'); console.error(error); }
+  else { setSaveStatus('\u2705 Opgeslagen'); }
+}
+
+async function pvaLoadFromCloud(id) {
+  const { data } = await sb.from('offertes').select('data').eq('id', id || currentOfferteId).single();
+  if (data?.data?.pva) {
+    pvaState = data.data.pva;
+    loadPvaState(pvaState);
+  }
+}
+
+function fillPvaFromOfferte() {
+  document.getElementById('pvaKlant').value = gv('klantBedrijf');
+  document.getElementById('pvaProjectnummer').value = gv('offerteNummer');
+  document.getElementById('pvaProjectleider').value = gv('klantContact');
+  document.getElementById('pvaLocatie').value = gv('projectLocatie');
+  pvaSave();
+  showToast('\u2b05\ufe0f Gegevens overgenomen uit offerte');
+}
+
+// ═══════════════════════════════════════════════
+// PVA PDF EXPORT
+// ═══════════════════════════════════════════════
+async function exportPvaPDF() {
+  if (!GR_LOGO_DATA) { await preloadLogo(); }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const W = 210, M = 15, CW = W - 2*M;
+  let y = 15;
+
+  doc.setFillColor(90, 145, 56);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Plan van Aanpak \u2014 BRL 2100', M, 16);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer', M, 23);
+  doc.text('KvK: 37089931  |  BTW: NL808849840B01', M, 28);
+  addGRLogo(doc, W - M - 32, 6, 32, 18);
+  doc.setFontSize(10);
+  doc.text(gv('pvaProjectnummer') || '', W - M, 34, { align: 'right' });
+
+  y = 46;
+  doc.setTextColor(0);
+
+  const s = getPvaState();
+  const addSection = (title) => {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFillColor(232, 245, 233);
+    doc.rect(M, y - 4, CW, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(90, 145, 56);
+    doc.text(title, M + 2, y);
+    doc.setTextColor(0);
+    y += 6;
+  };
+  const addField = (label, value) => {
+    if (!value) return;
+    if (y > 272) { doc.addPage(); y = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(label + ':', M + 2, y);
+    doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(String(value), CW - 50);
+    doc.text(lines, M + 48, y);
+    y += Math.max(5, lines.length * 4);
+  };
+  const addChecklist = (label, items) => {
+    const checked = items.filter(i => i[1]);
+    if (!checked.length) return;
+    addField(label, checked.map(i => i[0]).join(', '));
+  };
+
+  addSection('Projectgegevens');
+  addField('Klantnaam', s.pvaKlant);
+  addField('Projectnummer', s.pvaProjectnummer);
+  addField('Projectleider', s.pvaProjectleider);
+  addField('Telefoon', s.pvaTelefoon);
+  addField('Locatie', s.pvaLocatie);
+  addField('Bevoegd gezag', s.pvaBevoegdGezag);
+  y += 3;
+
+  addSection('Team op locatie');
+  addField('Medewerkers', (s.team || []).join(', '));
+  y += 3;
+
+  addSection('Planning');
+  addField('Datum uitvoering', formatDateNL(s.pvaDatumUitvoering));
+  addField('Transport klaar', formatDateNL(s.pvaDatumTransport));
+  addField('Start boorwerk', formatDateNL(s.pvaDatumStart));
+  addField('Eind boorwerk', formatDateNL(s.pvaDatumEind));
+  y += 3;
+
+  addSection('Scope & BRL');
+  const scopeMap = { A: 'Scope A \u2014 verdringend boren (Sonic)', B: 'Scope B \u2014 waterdrukboren (Spoelboren)' };
+  addField('Scope', scopeMap[s.radios?.pvaScope] || '');
+  const brls = [['BRL 2001', s.checks?.brl2001], ['BRL 2002', s.checks?.brl2002], ['BRL 2003', s.checks?.brl2003],
+    ['BRL 2100', s.checks?.brl2100], ['BRL 11000', s.checks?.brl11000], ['Geen BRL', s.checks?.geenBrl]];
+  addChecklist('BRL\'s', brls);
+  y += 3;
+
+  addSection('Doel & Beschrijving');
+  addField('Doel', s.pvaDoel);
+  addField('Beschrijving', s.pvaBeschrijving);
+  y += 3;
+
+  addSection('Boormethode & Machine');
+  const methodes = [['Handmatig', s.checks?.methHandmatig], ['Spoelboren', s.checks?.methSpoelboren],
+    ['Sonic ML', s.checks?.methSonicML], ['Sonic ML250', s.checks?.methSonicML250], ['Kraan mee', s.checks?.methKraan]];
+  addChecklist('Methode', methodes);
+  const buizen = [['GP63', s.checks?.buisGP63], ['GP88', s.checks?.buisGP88], ['GP100TR', s.checks?.buisGP100],
+    ['GD3"', s.checks?.buisGD3], ['GD4"', s.checks?.buisGD4], ['GD4.5"', s.checks?.buisGD45],
+    ['GD7"', s.checks?.buisGD7], ['Spoelboor 140mm', s.checks?.buisSpoelboor140],
+    ['Spoelboor 150mm', s.checks?.buisSpoelboor150], ['Custom', s.checks?.buisCustom]];
+  addChecklist('Boorbuis', buizen);
+  y += 3;
+
+  addSection('Filterbuis & Materiaal');
+  const pvcF = [['PVC 32mm', s.checks?.filterPvc32], ['PVC 40mm', s.checks?.filterPvc40],
+    ['PVC 50mm', s.checks?.filterPvc50], ['PVC 63mm', s.checks?.filterPvc63], ['PVC 110mm', s.checks?.filterPvc110]];
+  const hdpeF = [['HDPE 32mm', s.checks?.filterHdpe32], ['HDPE 40mm', s.checks?.filterHdpe40],
+    ['HDPE 50mm', s.checks?.filterHdpe50], ['HDPE 63mm', s.checks?.filterHdpe63],
+    ['HDPE 110mm', s.checks?.filterHdpe110], ['Inclinobuizen', s.checks?.filterInclinobuis]];
+  addChecklist('Filterbuis PVC', pvcF);
+  addChecklist('Filterbuis HDPE', hdpeF);
+  const pompen = [['Wormpomp PFT', s.checks?.pompWorm], ['Handmixer', s.checks?.pompHandmixer], ['Voormixer', s.checks?.pompVoormixer]];
+  addChecklist('Grout pomp', pompen);
+  addField('Afdichting', s.pvaAfdichting);
+  addField('Lussen', s.pvaLussen);
+  y += 3;
+
+  addSection('Locatie omstandigheden');
+  const waterMap = { ja:'Ja', nee:'Nee', ibc:'IBC mee', blauwvatten:'Blauwvatten mee' };
+  addField('Werkwater', waterMap[s.radios?.pvaWerkwater] || '');
+  const stroomMap = { '220v':'Ja 220V', '380v':'Ja 380V', nee:'Nee', aggregaat:'Aggregaat mee' };
+  addField('Werkstroom', stroomMap[s.radios?.pvaWerkstroom] || '');
+  const grondMap = { achterlaten:'Achterlaten op locatie', meenemen:'Meenemen', inzicht:'Naar eigen inzicht', opdrachtgever:'Afvoer door opdrachtgever', container:'Container door opdrachtgever' };
+  addField('Uitkomende grond', grondMap[s.radios?.pvaGrond] || '');
+  const meldingen = [['OLO Melding', s.checks?.oloMelding], ['KLIC melding', s.checks?.klicMelding],
+    ['Bodemloket gecheckt', s.checks?.bodemloket], ['Keur gecheckt', s.checks?.keurBeschermd]];
+  addChecklist('Meldingen', meldingen);
+  y += 3;
+
+  addSection('Veiligheid & Verontreiniging');
+  const pbms = [['Standaard PBM\'s', s.checks?.pbmStandaard], ['PID meter', s.checks?.pbmPid],
+    ['Gasmasker P3', s.checks?.pbmGasmasker], ['Saneringsoverall', s.checks?.pbmOverall], ['Instructiefilm', s.checks?.pbmFilm]];
+  addChecklist('PBM\'s', pbms);
+  const veront = [['VOCL', s.checks?.vVocl], ['Asbest', s.checks?.vAsbest], ['Zware metalen', s.checks?.vZwareMetalen],
+    ['Olieproducten', s.checks?.vOlie], ['Zink', s.checks?.vZink], ['Lood', s.checks?.vLood], ['Anders', s.checks?.vAnders]];
+  addChecklist('Verontreiniging', veront);
+  addField('Opmerkingen', s.pvaVeiligheidOpmerking);
+  const bodemMap = { ja:'Ja', nee:'Nee', nvt:'NVT' };
+  addField('Bodemonderzoek', bodemMap[s.radios?.pvaBodemonderzoek] || '');
+  addField('Verloren casing', bodemMap[s.radios?.pvaCasing] || '');
+
+  y += 10;
+  if (y > 255) { doc.addPage(); y = 20; }
+  doc.setDrawColor(90, 145, 56);
+  doc.line(M, y, M + 70, y);
+  doc.line(M + 90, y, M + CW, y);
+  y += 5;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Ground Research / Opdrachtgever', M, y);
+  doc.text('Handtekening Projectleider', M + 90, y);
+
+  doc.setTextColor(100);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer  |  KvK: 37089931', M, 287);
+
+  const naam = (gv('pvaKlant') || 'pva').replace(/\s+/g, '_');
+  doc.save('PvA_' + naam + '_' + (gv('pvaProjectnummer') || '') + '.pdf');
+  showToast('\ud83d\udcc4 PvA PDF ge\u00ebxporteerd');
+}
+
 </script>
 </body>
 </html>
