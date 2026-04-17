@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#1a5f3f">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
 // ARTIKELEN BIBLIOTHEEK
 var BIB_KEY = 'gr_artikel_bib';
@@ -580,7 +581,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 </div><!-- container -->
 
 <div class="toast" id="toast"></div>
-<input type="file" id="importFile" accept=".json" style="display:none" onchange="doImport(event)">
+<input type="file" id="importFile" accept=".json,.pdf" style="display:none" onchange="doImport(event)">
 
 <script>
 // ═══════════════════════════════════════════════
@@ -1018,6 +1019,14 @@ async function exportPDF() {
   doc.setFont('helvetica', 'italic');
   doc.text('Ground Research BV | Vrijheidweg 45, 1521 RP Wormerveer | KvK: 37089931 | BTW: NL808849840B01', M, 287);
 
+  // Embed offerte data als PDF metadata (voor re-import)
+  const stateJson = JSON.stringify(getOfferteState());
+  doc.setProperties({
+    title: 'Offerte ' + (gv('offerteNummer') || '') + ' - ' + (gv('klantBedrijf') || 'Klant'),
+    subject: 'Ground Research BV - Offerte',
+    keywords: 'GR_OFFERTE_DATA:' + btoa(unescape(encodeURIComponent(stateJson)))
+  });
+
   const naam = (gv('klantBedrijf') || 'offerte').replace(/\s+/g, '_');
   doc.save('Offerte_' + naam + '_' + gv('offerteDatum') + '.pdf');
   showToast('📄 PDF geëxporteerd');
@@ -1271,25 +1280,58 @@ function exportJSON() {
 
 function importJSON() { document.getElementById('importFile').click(); }
 
-function doImport(event) {
+async function doImport(event) {
   const file = event.target.files[0]; if (!file) return;
+
+  // PDF import
+  if (file.name.toLowerCase().endsWith('.pdf')) {
+    try {
+      showToast('⏳ PDF importeren...');
+      const ab = await file.arrayBuffer();
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument({data: ab}).promise;
+      const meta = await pdf.getMetadata();
+      const keywords = meta?.info?.Keywords || '';
+      if (keywords.startsWith('GR_OFFERTE_DATA:')) {
+        const b64 = keywords.substring('GR_OFFERTE_DATA:'.length);
+        const json = decodeURIComponent(escape(atob(b64)));
+        const s = JSON.parse(json);
+        loadOfferteState(s);
+        showToast('✅ Offerte uit PDF hersteld');
+      } else {
+        showToast('❌ Deze PDF bevat geen offerte-data. Exporteer eerst een nieuwe PDF.');
+      }
+    } catch(err) {
+      console.error('PDF import fout:', err);
+      showToast('❌ PDF import mislukt: ' + err.message);
+    }
+    event.target.value = '';
+    return;
+  }
+
+  // JSON import
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const s = JSON.parse(e.target.result);
-      offerte = s.offerte || { regels: [] };
-      nextId = s.nextId || 1;
-      if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
-      if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
-      if (s.datum) sv('offerteDatum', s.datum);
-      if (s.nummer) sv('offerteNummer', s.nummer);
-      if (s.kortingPct) sv('kortingPct', s.kortingPct);
-      if (s.opmerkingen) sv('opmerkingen', s.opmerkingen);
-      filterArtikelen(); renderOfferte(); autoSave();
+      loadOfferteState(s);
       showToast('📂 Offerte geladen');
     } catch(err) { showToast('❌ Ongeldig bestand'); }
   };
   reader.readAsText(file); event.target.value = '';
+}
+
+function loadOfferteState(s) {
+  offerte = s.offerte || { regels: [] };
+  nextId = s.nextId || 1;
+  if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
+  if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
+  if (s.datum) sv('offerteDatum', s.datum);
+  if (s.nummer) sv('offerteNummer', s.nummer);
+  if (s.kortingPct) sv('kortingPct', s.kortingPct);
+  if (s.opmerkingen) sv('opmerkingen', s.opmerkingen);
+  if (s.prijslijst) { const sel = document.getElementById('prijslijstSelect'); if(sel) sel.value = s.prijslijst; }
+  filterArtikelen(); renderOfferte(); autoSave();
 }
 
 function nieuweOfferte() {
