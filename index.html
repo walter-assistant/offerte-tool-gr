@@ -403,6 +403,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .pva-field textarea { resize:vertical; min-height:60px; }
 .pva-section-title { font-size:12px; font-weight:700; color:var(--primary); margin:12px 0 6px; text-transform:uppercase; letter-spacing:.5px; }
 
+/* WERKBON */
+.wb-regel { display:grid; grid-template-columns:1fr 80px 90px 90px 30px; gap:6px; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.wb-regel input { padding:6px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; }
+.wb-regel .num { text-align:right; }
+.wb-header { font-weight:700; font-size:11px; color:var(--muted); text-transform:uppercase; border-bottom:2px solid var(--primary); }
+.wb-totaal-row { font-weight:700; font-size:14px; padding:8px 0; border-top:2px solid var(--primary); }
+
 /* OFFERTE TABEL */
 .offerte-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .offerte-table th { background: var(--primary); color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
@@ -513,6 +520,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <div class="tab-bar">
   <div class="tab-btn active" onclick="switchTab('offerte')">📋 Offerte</div>
   <div class="tab-btn" onclick="switchTab('pva')">📑 Plan van Aanpak</div>
+  <div class="tab-btn" onclick="switchTab('werkbon')">🧾 Werkbon</div>
 </div>
 
 <!-- ══════ TAB: OFFERTE ══════ -->
@@ -889,6 +897,86 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 </div>
 
 </div><!-- tabPva -->
+
+<!-- ══════ TAB: WERKBON ══════ -->
+<div id="tabWerkbon" class="tab-content">
+
+<div class="section">
+  <div class="card">
+    <div class="card-header">🧾 Werkbon / Pre-factuur
+      <span style="float:right">
+        <button class="btn btn-sm btn-success" onclick="exportWerkbonPDF()">📄 PDF</button>
+        <button class="btn btn-sm btn-outline" onclick="fillWerkbonFromOfferte()">⬅️ Vul vanuit offerte</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Werkbon: Projectgegevens -->
+<div class="pva-grid">
+  <div class="pva-card">
+    <div class="pva-card-header">📍 Projectgegevens</div>
+    <div class="pva-card-body">
+      <div class="pva-field"><label>Bedrijf</label><input id="wbBedrijf" oninput="wbSave()"></div>
+      <div class="pva-field"><label>Contactpersoon</label><input id="wbContact" oninput="wbSave()"></div>
+      <div class="pva-field"><label>Projectnummer klant</label><input id="wbProjectnrKlant" oninput="wbSave()"></div>
+      <div class="pva-field"><label>Kenmerk</label><input id="wbKenmerk" oninput="wbSave()"></div>
+      <div class="pva-field"><label>Datum</label><input type="date" id="wbDatum" oninput="wbSave()"></div>
+      <div class="pva-field"><label>Werkzaamheden</label><input id="wbWerkzaamheden" oninput="wbSave()"></div>
+    </div>
+  </div>
+  <div class="pva-card">
+    <div class="pva-card-header">💰 Offertebedrag</div>
+    <div class="pva-card-body">
+      <div class="pva-field"><label>Offertebedrag (excl. BTW)</label><input type="text" id="wbOfferteBedrag" oninput="wbRecalc()" placeholder="0,00" style="font-size:18px;font-weight:700"></div>
+      <div id="wbTotalen" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Werkbon: Specificatie -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">📝 Specificatie kosten (uit offerte)
+    <span style="float:right;font-weight:400;font-size:11px;opacity:.7">Wordt automatisch overgenomen</span>
+  </div>
+  <div class="pva-card-body" style="padding:0 14px">
+    <div id="wbSpecRegels"></div>
+  </div>
+</div>
+
+<!-- Werkbon: Meerwerk / Minderwerk -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">➕ Meerwerk / Minderwerk
+    <span style="float:right">
+      <button class="btn btn-sm btn-outline" onclick="wbAddMeerwerk('+')">➕ Meerwerk</button>
+      <button class="btn btn-sm btn-outline" onclick="wbAddMeerwerk('-')">➖ Minderwerk</button>
+    </span>
+  </div>
+  <div class="pva-card-body" style="padding:0 14px">
+    <div class="wb-regel wb-header">
+      <div>Omschrijving</div><div class="num">Aantal</div><div class="num">Prijs</div><div class="num">Totaal</div><div></div>
+    </div>
+    <div id="wbMeerwerkRegels"></div>
+  </div>
+</div>
+
+<!-- Werkbon: Boringen overzicht -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">⛏️ Boringen overzicht
+    <span style="float:right">
+      <button class="btn btn-sm btn-outline" onclick="wbAddBoring()">➕ Boring</button>
+    </span>
+  </div>
+  <div class="pva-card-body" style="padding:0 14px">
+    <div class="wb-regel wb-header" style="grid-template-columns:50px 1fr 80px 30px">
+      <div>#</div><div>Omschrijving</div><div class="num">Diepte (m)</div><div></div>
+    </div>
+    <div id="wbBoringenRegels"></div>
+    <div id="wbBoringenTotaal" style="padding:8px 0;font-weight:600;font-size:13px"></div>
+  </div>
+</div>
+
+</div><!-- tabWerkbon -->
 
 </div><!-- container -->
 
@@ -1444,6 +1532,8 @@ async function loadOfferteFromCloud(id) {
   sv('opmerkingen', s.opmerkingen || '');
   // Load PvA data if present
   if (s.pva) { try { loadPvaState(s.pva); } catch(e) {} }
+  // Load Werkbon data if present
+  if (s.werkbon) { try { loadWbState(s.werkbon); } catch(e) {} }
   filterArtikelen();
   renderOfferte();
   setSaveStatus('✅ Geladen');
@@ -1459,6 +1549,8 @@ function getOfferteState() {
   };
   // Include PvA data if present
   try { const p = getPvaState(); if (p && Object.keys(p).length > 0) state.pva = p; } catch(e) {}
+  // Include Werkbon data if present
+  try { const w = getWbState(); if (w) state.werkbon = w; } catch(e) {}
   return state;
 }
 
@@ -1921,11 +2013,17 @@ function closeBibModal() {
 // ═══════════════════════════════════════════════
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', (tab === 'offerte' && i === 0) || (tab === 'pva' && i === 1));
+    b.classList.toggle('active', (tab === 'offerte' && i === 0) || (tab === 'pva' && i === 1) || (tab === 'werkbon' && i === 2));
+  });
+  ['tabOfferte','tabPva','tabWerkbon'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
   });
   document.getElementById('tabOfferte').classList.toggle('active', tab === 'offerte');
   document.getElementById('tabPva').classList.toggle('active', tab === 'pva');
+  document.getElementById('tabWerkbon').classList.toggle('active', tab === 'werkbon');
   if (tab === 'pva' && currentOfferteId) pvaLoadFromCloud();
+  if (tab === 'werkbon' && currentOfferteId) wbLoadFromCloud();
 }
 
 // ═══════════════════════════════════════════════
@@ -2078,6 +2176,353 @@ document.addEventListener('DOMContentLoaded', () => {
   // Delay init — pad might not be visible yet
   setTimeout(initPvaSigPad, 500);
 });
+
+// ═══════════════════════════════════════════════
+// WERKBON STATE
+// ═══════════════════════════════════════════════
+let wbMeerwerk = [];
+let wbBoringen = [];
+let wbSpecRegels = [];
+let wbNextId = 1;
+let wbSaveTimer = null;
+
+function parseDutchNumber(s) {
+  if (!s) return 0;
+  s = String(s).trim().replace(/\u20ac/g, '').trim();
+  // Dutch: 1.234,56 → 1234.56
+  if (s.includes(',')) { s = s.replace(/\./g, '').replace(',', '.'); }
+  return parseFloat(s) || 0;
+}
+function fmtDutch(n) { return n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function getWbState() {
+  return {
+    bedrijf: gv('wbBedrijf'), contact: gv('wbContact'), projectnrKlant: gv('wbProjectnrKlant'),
+    kenmerk: gv('wbKenmerk'), datum: gv('wbDatum'), werkzaamheden: gv('wbWerkzaamheden'),
+    offerteBedrag: gv('wbOfferteBedrag'),
+    specRegels: wbSpecRegels, meerwerk: wbMeerwerk, boringen: wbBoringen, nextId: wbNextId
+  };
+}
+
+function loadWbState(s) {
+  if (!s) return;
+  sv('wbBedrijf', s.bedrijf); sv('wbContact', s.contact); sv('wbProjectnrKlant', s.projectnrKlant);
+  sv('wbKenmerk', s.kenmerk); sv('wbDatum', s.datum); sv('wbWerkzaamheden', s.werkzaamheden);
+  sv('wbOfferteBedrag', s.offerteBedrag);
+  wbSpecRegels = s.specRegels || [];
+  wbMeerwerk = s.meerwerk || [];
+  wbBoringen = s.boringen || [];
+  wbNextId = s.nextId || 1;
+  wbRenderSpec();
+  wbRenderMeerwerk();
+  wbRenderBoringen();
+  wbRecalc();
+}
+
+function wbSave() {
+  setSaveStatus('\u270f\ufe0f Niet opgeslagen');
+  if (wbSaveTimer) clearTimeout(wbSaveTimer);
+  wbSaveTimer = setTimeout(() => wbSaveToCloud(), 1500);
+}
+
+async function wbSaveToCloud() {
+  if (!currentOfferteId || !currentUser) return;
+  setSaveStatus('\ud83d\udcbe Opslaan...');
+  const { data: row } = await sb.from('offertes').select('data').eq('id', currentOfferteId).single();
+  const existingData = row?.data || {};
+  existingData.werkbon = getWbState();
+  const { error } = await sb.from('offertes').update({
+    data: existingData, updated_by: currentUser.id
+  }).eq('id', currentOfferteId);
+  if (error) { setSaveStatus('\u274c Werkbon opslaan mislukt'); console.error(error); }
+  else { setSaveStatus('\u2705 Opgeslagen'); }
+}
+
+async function wbLoadFromCloud() {
+  const { data } = await sb.from('offertes').select('data').eq('id', currentOfferteId).single();
+  if (data?.data?.werkbon) loadWbState(data.data.werkbon);
+}
+
+function fillWerkbonFromOfferte() {
+  sv('wbBedrijf', gv('klantBedrijf'));
+  sv('wbContact', gv('klantContact'));
+  sv('wbProjectnrKlant', gv('projectNaam'));
+  sv('wbKenmerk', gv('offerteNummer'));
+  sv('wbDatum', gv('offerteDatum'));
+  sv('wbWerkzaamheden', gv('opmerkingen'));
+  // Bereken offertebedrag
+  let sub = 0;
+  offerte.regels.forEach(r => sub += r.aantal * r.prijs);
+  sv('wbOfferteBedrag', fmtDutch(sub));
+  // Specificatie regels overnemen
+  const cats = {};
+  offerte.regels.forEach(r => {
+    const cat = r.categorie || 'Overig';
+    if (!cats[cat]) cats[cat] = 0;
+    cats[cat] += r.aantal * r.prijs;
+  });
+  wbSpecRegels = Object.entries(cats).map(([cat, bedrag]) => ({ naam: cat, bedrag }));
+  wbRenderSpec();
+  wbRecalc();
+  wbSave();
+  showToast('\u2b05\ufe0f Werkbon gevuld vanuit offerte');
+}
+
+// Specificatie regels
+function wbRenderSpec() {
+  const el = document.getElementById('wbSpecRegels');
+  if (!el) return;
+  if (!wbSpecRegels.length) { el.innerHTML = '<p style="color:var(--muted);padding:12px;font-size:13px">Nog geen specificatie. Klik "Vul vanuit offerte" om over te nemen.</p>'; return; }
+  el.innerHTML = wbSpecRegels.map(r =>
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">' +
+    '<span>' + esc(r.naam) + '</span><span style="font-weight:600">\u20ac ' + fmtDutch(r.bedrag) + '</span></div>'
+  ).join('');
+}
+
+// Meerwerk
+function wbAddMeerwerk(type) {
+  wbMeerwerk.push({ id: wbNextId++, omschrijving: '', aantal: 1, prijs: 0, type: type });
+  wbRenderMeerwerk();
+  wbSave();
+}
+
+function wbRemoveMeerwerk(id) {
+  wbMeerwerk = wbMeerwerk.filter(r => r.id !== id);
+  wbRenderMeerwerk();
+  wbRecalc();
+  wbSave();
+}
+
+function wbUpdateMeerwerk(id, field, value) {
+  const r = wbMeerwerk.find(r => r.id === id);
+  if (r) {
+    if (field === 'aantal' || field === 'prijs') r[field] = parseFloat(value) || 0;
+    else r[field] = value;
+  }
+  wbRecalc();
+  wbSave();
+}
+
+function wbRenderMeerwerk() {
+  const el = document.getElementById('wbMeerwerkRegels');
+  if (!el) return;
+  if (!wbMeerwerk.length) { el.innerHTML = ''; return; }
+  el.innerHTML = wbMeerwerk.map(r => {
+    const sign = r.type === '-' ? '-' : '+';
+    const totaal = r.aantal * r.prijs * (r.type === '-' ? -1 : 1);
+    return '<div class="wb-regel">' +
+      '<input value="' + esc(r.omschrijving) + '" placeholder="' + (r.type === '-' ? 'Minderwerk...' : 'Meerwerk...') + '" oninput="wbUpdateMeerwerk(' + r.id + ',\'omschrijving\',this.value)">' +
+      '<input type="number" class="num" value="' + r.aantal + '" min="0" step="1" onchange="wbUpdateMeerwerk(' + r.id + ',\'aantal\',this.value)">' +
+      '<input type="number" class="num" value="' + r.prijs.toFixed(2) + '" min="0" step="0.01" onchange="wbUpdateMeerwerk(' + r.id + ',\'prijs\',this.value)">' +
+      '<span class="num" style="font-weight:600;color:' + (totaal < 0 ? 'var(--danger)' : 'var(--primary)') + '">' + sign + ' \u20ac ' + fmtDutch(Math.abs(totaal)) + '</span>' +
+      '<span onclick="wbRemoveMeerwerk(' + r.id + ')" style="color:var(--danger);cursor:pointer;font-size:16px;text-align:center">&times;</span></div>';
+  }).join('');
+}
+
+// Boringen
+function wbAddBoring() {
+  wbBoringen.push({ id: wbNextId++, omschrijving: '', diepte: 0 });
+  wbRenderBoringen();
+  wbSave();
+}
+
+function wbRemoveBoring(id) {
+  wbBoringen = wbBoringen.filter(r => r.id !== id);
+  wbRenderBoringen();
+  wbSave();
+}
+
+function wbUpdateBoring(id, field, value) {
+  const r = wbBoringen.find(r => r.id === id);
+  if (r) { if (field === 'diepte') r[field] = parseFloat(value) || 0; else r[field] = value; }
+  wbRenderBoringen();
+  wbSave();
+}
+
+function wbRenderBoringen() {
+  const el = document.getElementById('wbBoringenRegels');
+  if (!el) return;
+  el.innerHTML = wbBoringen.map((r, i) =>
+    '<div class="wb-regel" style="grid-template-columns:50px 1fr 80px 30px">' +
+    '<span style="font-weight:600">' + (i + 1) + '</span>' +
+    '<input value="' + esc(r.omschrijving) + '" placeholder="Boring omschrijving..." oninput="wbUpdateBoring(' + r.id + ',\'omschrijving\',this.value)">' +
+    '<input type="number" class="num" value="' + r.diepte + '" min="0" step="0.1" onchange="wbUpdateBoring(' + r.id + ',\'diepte\',this.value)">' +
+    '<span onclick="wbRemoveBoring(' + r.id + ')" style="color:var(--danger);cursor:pointer;font-size:16px;text-align:center">&times;</span></div>'
+  ).join('');
+  const totaal = wbBoringen.reduce((s, r) => s + r.diepte, 0);
+  const tel = document.getElementById('wbBoringenTotaal');
+  if (tel) tel.textContent = wbBoringen.length + ' boringen \u2014 totaal ' + fmtDutch(totaal) + ' meter';
+}
+
+// Totalen berekenen
+function wbRecalc() {
+  const offBedrag = parseDutchNumber(gv('wbOfferteBedrag'));
+  let meerwerkTotaal = 0;
+  wbMeerwerk.forEach(r => { meerwerkTotaal += r.aantal * r.prijs * (r.type === '-' ? -1 : 1); });
+  const subtotaal = offBedrag + meerwerkTotaal;
+  const btw = subtotaal * 0.21;
+  const totaal = subtotaal + btw;
+
+  const el = document.getElementById('wbTotalen');
+  if (!el) return;
+  let html = '<div style="font-size:13px">';
+  html += '<div style="display:flex;justify-content:space-between;padding:4px 0"><span>Offertebedrag:</span><span style="font-weight:600">\u20ac ' + fmtDutch(offBedrag) + '</span></div>';
+  if (meerwerkTotaal !== 0) {
+    html += '<div style="display:flex;justify-content:space-between;padding:4px 0;color:' + (meerwerkTotaal < 0 ? 'var(--danger)' : 'var(--primary)') + '"><span>Meer/minderwerk:</span><span style="font-weight:600">' + (meerwerkTotaal >= 0 ? '+ ' : '- ') + '\u20ac ' + fmtDutch(Math.abs(meerwerkTotaal)) + '</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--border)"><span>Subtotaal:</span><span style="font-weight:600">\u20ac ' + fmtDutch(subtotaal) + '</span></div>';
+  }
+  html += '<div style="display:flex;justify-content:space-between;padding:4px 0"><span>BTW 21%:</span><span>\u20ac ' + fmtDutch(btw) + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--primary);font-size:16px;font-weight:800;color:var(--primary)"><span>Totaal incl. BTW:</span><span>\u20ac ' + fmtDutch(totaal) + '</span></div>';
+  html += '</div>';
+  el.innerHTML = html;
+  wbRenderMeerwerk();
+}
+
+// Werkbon PDF
+async function exportWerkbonPDF() {
+  if (!GR_LOGO_DATA) { await preloadLogo(); }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const W = 210, M = 15, CW = W - 2*M;
+  let y = 15;
+
+  // Header
+  doc.setFillColor(90, 145, 56);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Werkbon / Pre-factuur', M, 16);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer', M, 23);
+  doc.text('KvK: 37089931  |  BTW: NL808849840B01', M, 28);
+  addGRLogo(doc, W - M - 32, 6, 32, 18);
+  doc.setFontSize(10);
+  doc.text(gv('wbKenmerk') || '', W - M, 34, { align: 'right' });
+
+  y = 46;
+  doc.setTextColor(0);
+
+  // Projectgegevens
+  doc.setFontSize(9);
+  const fields = [
+    ['Bedrijf', gv('wbBedrijf')], ['Contactpersoon', gv('wbContact')],
+    ['Projectnummer klant', gv('wbProjectnrKlant')], ['Kenmerk', gv('wbKenmerk')],
+    ['Datum', formatDateNL(gv('wbDatum'))], ['Werkzaamheden', gv('wbWerkzaamheden')]
+  ];
+  fields.forEach(([label, val]) => {
+    if (!val) return;
+    doc.setFont('helvetica', 'bold');
+    doc.text(label + ':', M, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(val, M + 45, y);
+    y += 5;
+  });
+  y += 5;
+
+  // Specificatie
+  doc.setFillColor(232, 245, 233);
+  doc.rect(M, y - 4, CW, 7, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(90, 145, 56);
+  doc.text('Specificatie kosten', M + 2, y);
+  doc.setTextColor(0);
+  y += 6;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  wbSpecRegels.forEach(r => {
+    doc.text(r.naam, M + 2, y);
+    doc.text('\u20ac ' + fmtDutch(r.bedrag), M + CW, y, { align: 'right' });
+    y += 5;
+  });
+  y += 3;
+
+  // Meerwerk
+  if (wbMeerwerk.length > 0) {
+    doc.setFillColor(232, 245, 233);
+    doc.rect(M, y - 4, CW, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(90, 145, 56);
+    doc.text('Meerwerk / Minderwerk', M + 2, y);
+    doc.setTextColor(0);
+    y += 6;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    wbMeerwerk.forEach(r => {
+      const tot = r.aantal * r.prijs * (r.type === '-' ? -1 : 1);
+      doc.text(r.omschrijving || (r.type === '-' ? 'Minderwerk' : 'Meerwerk'), M + 2, y);
+      doc.text(String(r.aantal), M + 100, y);
+      doc.text('\u20ac ' + fmtDutch(r.prijs), M + 120, y);
+      doc.text((tot >= 0 ? '+ ' : '- ') + '\u20ac ' + fmtDutch(Math.abs(tot)), M + CW, y, { align: 'right' });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  // Boringen
+  if (wbBoringen.length > 0) {
+    doc.setFillColor(232, 245, 233);
+    doc.rect(M, y - 4, CW, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(90, 145, 56);
+    doc.text('Boringen overzicht', M + 2, y);
+    doc.setTextColor(0);
+    y += 6;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    wbBoringen.forEach((r, i) => {
+      doc.text(String(i + 1), M + 2, y);
+      doc.text(r.omschrijving || '', M + 12, y);
+      doc.text(fmtDutch(r.diepte) + ' m', M + CW, y, { align: 'right' });
+      y += 5;
+    });
+    const totM = wbBoringen.reduce((s, r) => s + r.diepte, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Totaal: ' + wbBoringen.length + ' boringen \u2014 ' + fmtDutch(totM) + ' meter', M + 2, y);
+    y += 8;
+  }
+
+  // Totalen
+  const offBedrag = parseDutchNumber(gv('wbOfferteBedrag'));
+  let meerwerkTot = 0;
+  wbMeerwerk.forEach(r => { meerwerkTot += r.aantal * r.prijs * (r.type === '-' ? -1 : 1); });
+  const subtotaal = offBedrag + meerwerkTot;
+  const btw = subtotaal * 0.21;
+  const totaal = subtotaal + btw;
+
+  y += 3;
+  doc.setDrawColor(90, 145, 56);
+  doc.line(128, y, M + CW, y);
+  y += 5;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Offertebedrag:', 132, y); doc.text('\u20ac ' + fmtDutch(offBedrag), M + CW, y, { align: 'right' }); y += 5;
+  if (meerwerkTot !== 0) {
+    doc.text('Meer/minderwerk:', 132, y); doc.text((meerwerkTot >= 0 ? '+ ' : '- ') + '\u20ac ' + fmtDutch(Math.abs(meerwerkTot)), M + CW, y, { align: 'right' }); y += 5;
+    doc.text('Subtotaal:', 132, y); doc.text('\u20ac ' + fmtDutch(subtotaal), M + CW, y, { align: 'right' }); y += 5;
+  }
+  doc.text('BTW (21%):', 132, y); doc.text('\u20ac ' + fmtDutch(btw), M + CW, y, { align: 'right' }); y += 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setFillColor(90, 145, 56);
+  doc.rect(128, y - 4.5, CW - 128 + M, 8, 'F');
+  doc.setTextColor(255);
+  doc.text('Totaal incl. BTW:', 132, y + 1); doc.text('\u20ac ' + fmtDutch(totaal), M + CW - 2, y + 1, { align: 'right' });
+
+  // Footer
+  doc.setTextColor(100);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer  |  KvK: 37089931  |  BTW: NL808849840B01', M, 287);
+
+  const naam = (gv('wbBedrijf') || 'werkbon').replace(/\s+/g, '_');
+  doc.save('Werkbon_' + naam + '_' + (gv('wbKenmerk') || '') + '.pdf');
+  showToast('\ud83d\udcc4 Werkbon PDF ge\u00ebxporteerd');
+}
 
 function fillPvaFromOfferte() {
   document.getElementById('pvaKlant').value = gv('klantBedrijf');
