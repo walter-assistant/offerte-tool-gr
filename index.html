@@ -2254,14 +2254,11 @@ function fillWerkbonFromOfferte() {
   let sub = 0;
   offerte.regels.forEach(r => sub += r.aantal * r.prijs);
   sv('wbOfferteBedrag', fmtDutch(sub));
-  // Specificatie regels overnemen
-  const cats = {};
-  offerte.regels.forEach(r => {
-    const cat = r.categorie || 'Overig';
-    if (!cats[cat]) cats[cat] = 0;
-    cats[cat] += r.aantal * r.prijs;
-  });
-  wbSpecRegels = Object.entries(cats).map(([cat, bedrag]) => ({ naam: cat, bedrag }));
+  // Specificatie regels overnemen — alle individuele artikelen
+  wbSpecRegels = offerte.regels.map(r => ({
+    omschrijving: r.omschrijving, eenheid: r.eenheid || 'Stuk',
+    aantal: r.aantal, prijs: r.prijs, totaal: r.aantal * r.prijs
+  }));
   wbRenderSpec();
   wbRecalc();
   wbSave();
@@ -2273,10 +2270,16 @@ function wbRenderSpec() {
   const el = document.getElementById('wbSpecRegels');
   if (!el) return;
   if (!wbSpecRegels.length) { el.innerHTML = '<p style="color:var(--muted);padding:12px;font-size:13px">Nog geen specificatie. Klik "Vul vanuit offerte" om over te nemen.</p>'; return; }
-  el.innerHTML = wbSpecRegels.map(r =>
-    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">' +
-    '<span>' + esc(r.naam) + '</span><span style="font-weight:600">\u20ac ' + fmtDutch(r.bedrag) + '</span></div>'
+  let html = '<div class="wb-regel wb-header"><div>Omschrijving</div><div class="num">Aantal</div><div class="num">Prijs</div><div class="num">Totaal</div><div></div></div>';
+  html += wbSpecRegels.map(r =>
+    '<div class="wb-regel">' +
+    '<div style="font-size:12px">' + esc(r.omschrijving) + ' <span style="color:var(--muted);font-size:11px">(' + esc(r.eenheid || '') + ')</span></div>' +
+    '<div class="num" style="font-size:12px">' + r.aantal + '</div>' +
+    '<div class="num" style="font-size:12px">\u20ac ' + fmtDutch(r.prijs) + '</div>' +
+    '<div class="num" style="font-size:12px;font-weight:600">\u20ac ' + fmtDutch(r.totaal) + '</div>' +
+    '<div></div></div>'
   ).join('');
+  el.innerHTML = html;
 }
 
 // Meerwerk
@@ -2430,11 +2433,22 @@ async function exportWerkbonPDF() {
   doc.text('Specificatie kosten', M + 2, y);
   doc.setTextColor(0);
   y += 6;
-  doc.setFontSize(9);
+  doc.setFontSize(8);
+  // Tabel header
+  doc.setFont('helvetica', 'bold');
+  doc.text('Omschrijving', M + 2, y); doc.text('Eenh.', M + 105, y); doc.text('Aantal', M + 125, y); doc.text('Prijs', M + 145, y); doc.text('Totaal', M + CW, y, { align: 'right' });
+  y += 4;
+  doc.setDrawColor(200); doc.line(M, y - 1, M + CW, y - 1);
   doc.setFont('helvetica', 'normal');
   wbSpecRegels.forEach(r => {
-    doc.text(r.naam, M + 2, y);
-    doc.text('\u20ac ' + fmtDutch(r.bedrag), M + CW, y, { align: 'right' });
+    if (y > 270) { doc.addPage(); y = 20; }
+    const omschr = r.omschrijving.length > 55 ? r.omschrijving.substring(0, 53) + '...' : r.omschrijving;
+    doc.text(omschr, M + 2, y);
+    doc.text(r.eenheid || '', M + 105, y);
+    doc.text(String(r.aantal), M + 130, y, { align: 'right' });
+    doc.text('\u20ac ' + fmtDutch(r.prijs), M + 152, y, { align: 'right' });
+    doc.text('\u20ac ' + fmtDutch(r.totaal), M + CW, y, { align: 'right' });
+    doc.setDrawColor(230); doc.line(M, y + 1.5, M + CW, y + 1.5);
     y += 5;
   });
   y += 3;
