@@ -714,13 +714,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Maarten vd Weerd" onchange="pvaSave()"> Maarten vd Weerd</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Pim Groot" onchange="pvaSave()"> Pim Groot</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Richard Brink" onchange="pvaSave()"> Richard Brink</label></div>
-      <div class="pva-check"><label><input type="checkbox" data-pva-team="Rene Roeleveld" onchange="pvaSave()"> Rene Roeleveld</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Jeroen Kipp" onchange="pvaSave()"> Jeroen Kipp</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Mark Boon" onchange="pvaSave()"> Mark Boon</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Thijs Schermer" onchange="pvaSave()"> Thijs Schermer</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Dion Koopman" onchange="pvaSave()"> Dion Koopman</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Edsel Welvaart" onchange="pvaSave()"> Edsel Welvaart</label></div>
       <div class="pva-check"><label><input type="checkbox" data-pva-team="Steven Dubois" onchange="pvaSave()"> Steven Dubois</label></div>
+      <div class="pva-check" style="grid-column:span 2"><label><input type="checkbox" id="pvaTeamAndersCheck" onchange="pvaSave()"> Anders:</label> <input id="pvaTeamAnders" placeholder="Naam invullen" oninput="pvaSave()" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px;margin-left:4px"></div>
     </div>
   </div>
 </div>
@@ -1932,6 +1932,14 @@ function getPvaState() {
   document.querySelectorAll('[data-pva-team]').forEach(cb => {
     if (cb.checked) s.team.push(cb.getAttribute('data-pva-team'));
   });
+  // Anders veld
+  const andersCheck = document.getElementById('pvaTeamAndersCheck');
+  const andersNaam = document.getElementById('pvaTeamAnders');
+  if (andersCheck?.checked && andersNaam?.value.trim()) {
+    s.team.push(andersNaam.value.trim());
+  }
+  s.teamAnders = andersNaam?.value || '';
+  s.teamAndersChecked = andersCheck?.checked || false;
   s.radios = {};
   ['pvaScope','pvaWerkwater','pvaWerkstroom','pvaGrond','pvaBodemonderzoek','pvaCasing'].forEach(name => {
     const checked = document.querySelector('input[name="' + name + '"]:checked');
@@ -1959,6 +1967,10 @@ function loadPvaState(s) {
       cb.checked = s.team.includes(cb.getAttribute('data-pva-team'));
     });
   }
+  const ac = document.getElementById('pvaTeamAndersCheck');
+  const an = document.getElementById('pvaTeamAnders');
+  if (ac) ac.checked = s.teamAndersChecked || false;
+  if (an) an.value = s.teamAnders || '';
   if (s.radios) {
     Object.entries(s.radios).forEach(([name, val]) => {
       if (val) {
