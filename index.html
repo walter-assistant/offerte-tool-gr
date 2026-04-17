@@ -1299,7 +1299,20 @@ async function doImport(event) {
         loadOfferteState(s);
         showToast('✅ Offerte uit PDF hersteld');
       } else {
-        showToast('❌ Deze PDF bevat geen offerte-data. Exporteer eerst een nieuwe PDF.');
+        // Fallback: parse text from PDF
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map(x => x.str).join(' ') + '\n';
+        }
+        const parsed = parseOffertePdfText(fullText);
+        if (parsed) {
+          loadOfferteState(parsed);
+          showToast('✅ Offerte uit PDF tekst hersteld (' + (parsed.offerte?.regels?.length || 0) + ' regels)');
+        } else {
+          showToast('❌ Kon geen offerte-data uit deze PDF halen');
+        }
       }
     } catch(err) {
       console.error('PDF import fout:', err);
@@ -1319,6 +1332,85 @@ async function doImport(event) {
     } catch(err) { showToast('❌ Ongeldig bestand'); }
   };
   reader.readAsText(file); event.target.value = '';
+}
+
+function parseOffertePdfText(text) {
+  try {
+    const t = text.replace(/\r\n/g, '\n');
+    const find = (label) => {
+      const re = new RegExp(label + '[:\\s]*(.+)', 'i');
+      const m = t.match(re);
+      return m ? m[1].trim() : '';
+    };
+    // Offerte nummer en datum
+    const nummerMatch = t.match(/OFFERTE\s+(GR[\-\d]+)/i);
+    const nummer = nummerMatch ? nummerMatch[1] : '';
+    const datumMatch = t.match(/OFFERTE\s+GR[\-\d]+\s+(\d{2}-\d{2}-\d{4})/i);
+    let datum = '';
+    if (datumMatch) {
+      const [d, m, y] = datumMatch[1].split('-');
+      datum = y + '-' + m + '-' + d;
+    }
+    // Klant: lines after datum, before "Project:"
+    const afterHeader = t.split(/OFFERTE\s+GR[\-\d]+\s+\d{2}-\d{2}-\d{4}/i)[1] || '';
+    const beforeProject = afterHeader.split(/Project:/i)[0] || '';
+    const klantLines = beforeProject.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('Omschrijving'));
+    const bedrijf = klantLines[0] || '';
+    let contact = '', adres = '', postcode = '', plaats = '';
+    for (const line of klantLines.slice(1)) {
+      if (line.startsWith('t.a.v.')) contact = line.replace('t.a.v.', '').trim();
+      else if (/^\d{4}\s?[A-Z]{2}/.test(line)) {
+        const pcm = line.match(/^(\d{4}\s?[A-Z]{2})\s+(.+)/);
+        if (pcm) { postcode = pcm[1]; plaats = pcm[2]; }
+      } else if (!contact && !adres) adres = line;
+      else if (!adres) adres = line;
+    }
+    // Project
+    const projectNaam = find('Project');
+    const kenmerk = find('Kenmerk');
+    const locatie = find('Locatie');
+    // Opmerkingen
+    const opmMatch = t.match(/Opmerkingen:\s*([\s\S]*?)(?:Deze offerte|$)/i);
+    const opmerkingen = opmMatch ? opmMatch[1].trim() : '';
+    // Regels: between header row and Subtotaal
+    const regelSection = t.match(/Prijs\s+Totaal\s+([\s\S]*?)Subtotaal/i);
+    const regels = [];
+    let nextId = 1;
+    if (regelSection) {
+      const lines = regelSection[1].split('\n').map(l => l.trim()).filter(Boolean);
+      let currentCat = '';
+      for (const line of lines) {
+        // Category header (no euro sign)
+        if (!line.includes('\u20ac') && !line.match(/^\d/) && line.length < 60) {
+          currentCat = line; continue;
+        }
+        // Parse: description unit amount price total
+        // Match lines like: "Dag Sonic 2 € 2.250,00 € 4.500,00"
+        const m = line.match(/^(.+?)\s+(stuk|meter|m2|m3|kg|uur|dag|stuks|set|ls)?\s*(\d+[\d.,]*)\s+\u20ac\s*([\d.,]+)\s+\u20ac\s*([\d.,]+)/i);
+        if (m) {
+          const parseDutch = (s) => parseFloat(s.replace(/\./g, '').replace(',', '.'));
+          regels.push({
+            id: nextId++,
+            omschrijving: m[1].trim(),
+            eenheid: m[2] || 'stuk',
+            aantal: parseDutch(m[3]),
+            prijs: parseDutch(m[4]),
+            categorie: currentCat
+          });
+        }
+      }
+    }
+    return {
+      offerte: { regels },
+      nextId,
+      klant: { bedrijf, contact, adres, postcode, plaats },
+      project: { naam: projectNaam, kenmerk, locatie },
+      datum, nummer, opmerkingen
+    };
+  } catch(e) {
+    console.error('parseOffertePdfText fout:', e);
+    return null;
+  }
 }
 
 function loadOfferteState(s) {
