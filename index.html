@@ -404,11 +404,16 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .pva-section-title { font-size:12px; font-weight:700; color:var(--primary); margin:12px 0 6px; text-transform:uppercase; letter-spacing:.5px; }
 
 /* WERKBON */
-.wb-regel { display:grid; grid-template-columns:1fr 80px 90px 90px 30px; gap:6px; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
-.wb-regel input { padding:6px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; }
+.wb-regel { display:grid; grid-template-columns:1fr 50px 75px 75px 24px; gap:4px; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.wb-regel input { padding:6px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; width:100%; box-sizing:border-box; }
 .wb-regel .num { text-align:right; }
-.wb-header { font-weight:700; font-size:11px; color:var(--muted); text-transform:uppercase; border-bottom:2px solid var(--primary); }
+.wb-header { font-weight:700; font-size:10px; color:var(--muted); text-transform:uppercase; border-bottom:2px solid var(--primary); }
 .wb-totaal-row { font-weight:700; font-size:14px; padding:8px 0; border-top:2px solid var(--primary); }
+@media(max-width:500px) {
+  .wb-regel { grid-template-columns:1fr 40px 65px 65px 20px; gap:2px; font-size:11px; }
+  .wb-regel input { font-size:12px; padding:4px 6px; }
+  .wb-header { font-size:9px; }
+}
 
 /* OFFERTE TABEL */
 .offerte-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -2270,14 +2275,14 @@ function wbRenderSpec() {
   const el = document.getElementById('wbSpecRegels');
   if (!el) return;
   if (!wbSpecRegels.length) { el.innerHTML = '<p style="color:var(--muted);padding:12px;font-size:13px">Nog geen specificatie. Klik "Vul vanuit offerte" om over te nemen.</p>'; return; }
-  let html = '<div class="wb-regel wb-header"><div>Omschrijving</div><div class="num">Aantal</div><div class="num">Prijs</div><div class="num">Totaal</div><div></div></div>';
+  let html = '<div class="wb-regel wb-header" style="grid-template-columns:1fr 40px 70px 70px"><div>Omschrijving</div><div class="num">Aant.</div><div class="num">Prijs</div><div class="num">Totaal</div></div>';
   html += wbSpecRegels.map(r =>
-    '<div class="wb-regel">' +
-    '<div style="font-size:12px">' + esc(r.omschrijving) + ' <span style="color:var(--muted);font-size:11px">(' + esc(r.eenheid || '') + ')</span></div>' +
+    '<div class="wb-regel" style="grid-template-columns:1fr 40px 70px 70px">' +
+    '<div style="font-size:12px;word-break:break-word">' + esc(r.omschrijving) + '</div>' +
     '<div class="num" style="font-size:12px">' + r.aantal + '</div>' +
-    '<div class="num" style="font-size:12px">\u20ac ' + fmtDutch(r.prijs) + '</div>' +
+    '<div class="num" style="font-size:11px">\u20ac ' + fmtDutch(r.prijs) + '</div>' +
     '<div class="num" style="font-size:12px;font-weight:600">\u20ac ' + fmtDutch(r.totaal) + '</div>' +
-    '<div></div></div>'
+    '</div>'
   ).join('');
   el.innerHTML = html;
 }
