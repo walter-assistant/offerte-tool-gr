@@ -1085,6 +1085,7 @@ async function doLogout() {
 async function showApp() {
   document.getElementById('authOverlay').style.display = 'none';
   await loadOffertesList();
+  syncBibFromCloud();
   if (allOffertes.length > 0) {
     currentOfferteId = allOffertes[0].id;
     await loadOfferteFromCloud(currentOfferteId);
@@ -1462,8 +1463,45 @@ function showToast(msg) { const t = document.getElementById('toast'); t.textCont
 
 // ARTIKELEN BIBLIOTHEEK
 var BIB_KEY = 'gr_artikel_bib';
+var _bibSyncDone = false;
 function getBib() { try { return JSON.parse(localStorage.getItem(BIB_KEY) || '[]'); } catch(e) { return []; } }
-function saveBib(arr) { localStorage.setItem(BIB_KEY, JSON.stringify(arr)); }
+function saveBib(arr) {
+  localStorage.setItem(BIB_KEY, JSON.stringify(arr));
+  if (currentUser && sb) {
+    sb.from('user_data').upsert(
+      { user_id: currentUser.id, data_key: 'artikel_bibliotheek', data_value: arr, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,data_key' }
+    ).then(({error}) => { if(error) console.error('Bib sync fout:', error); });
+  }
+}
+async function syncBibFromCloud() {
+  if (_bibSyncDone || !currentUser || !sb) return;
+  _bibSyncDone = true;
+  try {
+    const { data } = await sb.from('user_data').select('data_value').eq('user_id', currentUser.id).eq('data_key', 'artikel_bibliotheek').single();
+    if (data && data.data_value) {
+      const cloudBib = data.data_value;
+      const localBib = getBib();
+      if (cloudBib.length > 0 && localBib.length === 0) {
+        localStorage.setItem(BIB_KEY, JSON.stringify(cloudBib));
+        populateBibSelect();
+      } else if (localBib.length > 0 && cloudBib.length === 0) {
+        saveBib(localBib);
+      } else if (localBib.length > 0 && cloudBib.length > 0) {
+        const cloudMap = new Map(cloudBib.map(a => [a.omschrijving + '|' + a.eenheid, a]));
+        let merged = [...cloudBib];
+        for (const a of localBib) {
+          if (!cloudMap.has(a.omschrijving + '|' + a.eenheid)) merged.push(a);
+        }
+        localStorage.setItem(BIB_KEY, JSON.stringify(merged));
+        saveBib(merged);
+        populateBibSelect();
+      }
+    } else if (getBib().length > 0) {
+      saveBib(getBib());
+    }
+  } catch(e) { console.warn('Bib cloud sync:', e); }
+}
 
 function populateBibSelect() {
   var sel = document.getElementById('bibSelect');
