@@ -819,6 +819,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div class="pva-check-grid">
         <div class="pva-check"><label><input type="checkbox" data-pva="oloMelding" onchange="pvaSave()"> OLO Melding gedaan</label></div>
         <div class="pva-check"><label><input type="checkbox" data-pva="klicMelding" onchange="pvaSave()"> KLIC melding gedaan</label></div>
+        <div class="pva-check" style="margin-left:24px"><label><input type="radio" name="pvaKlicDoor" value="gr" onchange="pvaSave()"> Door Ground Research</label></div>
+        <div class="pva-check" style="margin-left:24px"><label><input type="radio" name="pvaKlicDoor" value="opdrachtgever" onchange="pvaSave()"> Door opdrachtgever</label></div>
         <div class="pva-check"><label><input type="checkbox" data-pva="bodemloket" onchange="pvaSave()"> Bodemloket gecheckt</label></div>
         <div class="pva-check"><label><input type="checkbox" data-pva="keurBeschermd" onchange="pvaSave()"> Keur gecheckt (beschermd gebied)</label></div>
       </div>
@@ -867,6 +869,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   <div class="pva-card-header">🌡️ Bodemenergie lussen (optioneel)</div>
   <div class="pva-card-body">
     <div class="pva-field"><label>Aantal lussen incl. diameter</label><input id="pvaLussen" oninput="pvaSave()" placeholder="bijv. 4x 40mm dubbel-U"></div>
+  </div>
+</div>
+
+<!-- PvA: Ondertekening -->
+<div class="pva-card" style="margin-top:12px">
+  <div class="pva-card-header">✍️ Gecheckt door</div>
+  <div class="pva-card-body">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span style="font-size:14px;font-weight:600">Pim Groot — Projectleider Ground Research BV</span>
+    </div>
+    <div class="pva-field"><label>Handtekening</label>
+      <canvas id="pvaSigCanvas" width="400" height="120" style="border:1px solid var(--border);border-radius:6px;cursor:crosshair;touch-action:none;max-width:100%"></canvas>
+      <div style="margin-top:6px">
+        <button class="btn btn-sm btn-outline" onclick="clearPvaSig()">🗑️ Wissen</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1940,8 +1958,13 @@ function getPvaState() {
   }
   s.teamAnders = andersNaam?.value || '';
   s.teamAndersChecked = andersCheck?.checked || false;
+  // Handtekening
+  try {
+    const sigCanvas = document.getElementById('pvaSigCanvas');
+    if (sigCanvas) s.signature = sigCanvas.toDataURL('image/png');
+  } catch(e) {}
   s.radios = {};
-  ['pvaScope','pvaWerkwater','pvaWerkstroom','pvaGrond','pvaBodemonderzoek','pvaCasing'].forEach(name => {
+  ['pvaScope','pvaWerkwater','pvaWerkstroom','pvaGrond','pvaBodemonderzoek','pvaCasing','pvaKlicDoor'].forEach(name => {
     const checked = document.querySelector('input[name="' + name + '"]:checked');
     s.radios[name] = checked ? checked.value : '';
   });
@@ -1971,6 +1994,17 @@ function loadPvaState(s) {
   const an = document.getElementById('pvaTeamAnders');
   if (ac) ac.checked = s.teamAndersChecked || false;
   if (an) an.value = s.teamAnders || '';
+  // Handtekening
+  if (s.signature) {
+    try {
+      const sigCanvas = document.getElementById('pvaSigCanvas');
+      if (sigCanvas) {
+        const img = new Image();
+        img.onload = () => { sigCanvas.getContext('2d').drawImage(img, 0, 0); };
+        img.src = s.signature;
+      }
+    } catch(e) {}
+  }
   if (s.radios) {
     Object.entries(s.radios).forEach(([name, val]) => {
       if (val) {
@@ -2010,6 +2044,40 @@ async function pvaLoadFromCloud(id) {
     loadPvaState(pvaState);
   }
 }
+
+// ═══════════════════════════════════════════════════
+// SIGNATURE PAD
+// ═══════════════════════════════════════════════════
+let pvaSigDrawing = false;
+function initPvaSigPad() {
+  const c = document.getElementById('pvaSigCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  let drawing = false;
+  const getPos = (e) => {
+    const rect = c.getBoundingClientRect();
+    const scaleX = c.width / rect.width;
+    const scaleY = c.height / rect.height;
+    if (e.touches) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  };
+  const start = (e) => { drawing = true; pvaSigDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+  const move = (e) => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke(); e.preventDefault(); };
+  const end = () => { drawing = false; if (pvaSigDrawing) { pvaSigDrawing = false; pvaSave(); } };
+  c.addEventListener('mousedown', start); c.addEventListener('mousemove', move); c.addEventListener('mouseup', end); c.addEventListener('mouseleave', end);
+  c.addEventListener('touchstart', start, {passive:false}); c.addEventListener('touchmove', move, {passive:false}); c.addEventListener('touchend', end);
+}
+function clearPvaSig() {
+  const c = document.getElementById('pvaSigCanvas');
+  if (c) { c.getContext('2d').clearRect(0, 0, c.width, c.height); pvaSave(); }
+}
+// Init pad when tab opens
+let _pvaSigInited = false;
+const _origSwitchTab = typeof switchTab === 'function' ? null : null;
+document.addEventListener('DOMContentLoaded', () => {
+  // Delay init — pad might not be visible yet
+  setTimeout(initPvaSigPad, 500);
+});
 
 function fillPvaFromOfferte() {
   document.getElementById('pvaKlant').value = gv('klantBedrijf');
@@ -2144,6 +2212,10 @@ async function exportPvaPDF() {
   const meldingen = [['OLO Melding', s.checks?.oloMelding], ['KLIC melding', s.checks?.klicMelding],
     ['Bodemloket gecheckt', s.checks?.bodemloket], ['Keur gecheckt', s.checks?.keurBeschermd]];
   addChecklist('Meldingen', meldingen);
+  if (s.checks?.klicMelding) {
+    const klicDoorMap = { gr: 'Door Ground Research', opdrachtgever: 'Door opdrachtgever' };
+    addField('KLIC door', klicDoorMap[s.radios?.pvaKlicDoor] || '');
+  }
   y += 3;
 
   addSection('Veiligheid & Verontreiniging');
@@ -2158,16 +2230,25 @@ async function exportPvaPDF() {
   addField('Bodemonderzoek', bodemMap[s.radios?.pvaBodemonderzoek] || '');
   addField('Verloren casing', bodemMap[s.radios?.pvaCasing] || '');
 
+  // Ondertekening met handtekening
   y += 10;
-  if (y > 255) { doc.addPage(); y = 20; }
+  if (y > 230) { doc.addPage(); y = 20; }
+  addSection('Gecheckt door');
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Pim Groot \u2014 Projectleider Ground Research BV', M + 2, y);
+  y += 8;
+  // Handtekening afbeelding
+  if (s.signature) {
+    try {
+      doc.addImage(s.signature, 'PNG', M + 2, y, 60, 18);
+      y += 22;
+    } catch(e) { y += 4; }
+  } else {
+    y += 4;
+  }
   doc.setDrawColor(90, 145, 56);
   doc.line(M, y, M + 70, y);
-  doc.line(M + 90, y, M + CW, y);
-  y += 5;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Ground Research / Opdrachtgever', M, y);
-  doc.text('Handtekening Projectleider', M + 90, y);
 
   doc.setTextColor(100);
   doc.setFontSize(7);
