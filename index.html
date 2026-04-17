@@ -2084,6 +2084,9 @@ function fillPvaFromOfferte() {
   document.getElementById('pvaProjectnummer').value = gv('offerteNummer');
   document.getElementById('pvaProjectleider').value = gv('klantContact');
   document.getElementById('pvaLocatie').value = gv('projectLocatie');
+  // Opmerkingen → Beschrijving werkzaamheden
+  const opm = gv('opmerkingen');
+  if (opm) document.getElementById('pvaBeschrijving').value = opm;
   pvaSave();
   showToast('\u2b05\ufe0f Gegevens overgenomen uit offerte');
 }
