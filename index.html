@@ -1083,6 +1083,7 @@ function addArtikelWithAantal(r, aantal) {
 
 let voiceRecognition = null;
 let voiceListening = false;
+let voiceTranscriptBase = '';
 
 function updateVoiceStatus(msg) {
   const el = document.getElementById('voiceStatus');
@@ -1106,6 +1107,7 @@ function setupVoiceRecognition() {
 
   voiceRecognition.onstart = function() {
     voiceListening = true;
+    voiceTranscriptBase = gv('voiceTranscript').split('\n--- live ---\n')[0].trim();
     const btn = document.getElementById('voiceStartBtn');
     if (btn) btn.textContent = 'Stop inspreken';
     updateVoiceStatus('Luistert, spreek maar');
@@ -1119,8 +1121,7 @@ function setupVoiceRecognition() {
       if (event.results[i].isFinal) finalText += txt + ' ';
       else interimText += txt + ' ';
     }
-    const base = gv('voiceTranscript').split('\n--- live ---\n')[0].trim();
-    const combined = (base + ' ' + finalText).trim();
+    const combined = ((voiceTranscriptBase ? voiceTranscriptBase + ' ' : '') + finalText).trim();
     sv('voiceTranscript', interimText.trim() ? (combined + '\n--- live ---\n' + interimText.trim()) : combined);
     updateVoiceStatus(interimText.trim() ? 'Luistert, tekst wordt live bijgewerkt' : 'Tekst vastgelegd');
   };
