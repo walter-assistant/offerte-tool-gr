@@ -1084,6 +1084,7 @@ function addArtikelWithAantal(r, aantal) {
 let voiceRecognition = null;
 let voiceListening = false;
 let voiceTranscriptBase = '';
+let voiceFinalTranscript = '';
 
 function updateVoiceStatus(msg) {
   const el = document.getElementById('voiceStatus');
@@ -1102,28 +1103,28 @@ function setupVoiceRecognition() {
 
   voiceRecognition = new SR();
   voiceRecognition.lang = 'nl-NL';
-  voiceRecognition.interimResults = true;
+  voiceRecognition.interimResults = false;
   voiceRecognition.continuous = true;
 
   voiceRecognition.onstart = function() {
     voiceListening = true;
     voiceTranscriptBase = gv('voiceTranscript').split('\n--- live ---\n')[0].trim();
+    voiceFinalTranscript = '';
     const btn = document.getElementById('voiceStartBtn');
     if (btn) btn.textContent = 'Stop inspreken';
     updateVoiceStatus('Luistert, spreek maar');
   };
 
   voiceRecognition.onresult = function(event) {
-    let finalText = '';
-    let interimText = '';
-    for (let i = 0; i < event.results.length; i++) {
+    for (let i = event.resultIndex; i < event.results.length; i++) {
       const txt = event.results[i][0] ? event.results[i][0].transcript : '';
-      if (event.results[i].isFinal) finalText += txt + ' ';
-      else interimText += txt + ' ';
+      if (event.results[i].isFinal) {
+        voiceFinalTranscript += txt + ' ';
+      }
     }
-    const combined = ((voiceTranscriptBase ? voiceTranscriptBase + ' ' : '') + finalText).trim();
-    sv('voiceTranscript', interimText.trim() ? (combined + '\n--- live ---\n' + interimText.trim()) : combined);
-    updateVoiceStatus(interimText.trim() ? 'Luistert, tekst wordt live bijgewerkt' : 'Tekst vastgelegd');
+    const combined = ((voiceTranscriptBase ? voiceTranscriptBase + ' ' : '') + voiceFinalTranscript).trim();
+    sv('voiceTranscript', combined);
+    updateVoiceStatus('Tekst vastgelegd');
   };
 
   voiceRecognition.onerror = function(event) {
@@ -1134,7 +1135,7 @@ function setupVoiceRecognition() {
     voiceListening = false;
     const btn = document.getElementById('voiceStartBtn');
     if (btn) btn.textContent = 'Start inspreken';
-    const cleaned = gv('voiceTranscript').replace(/\n--- live ---\n[\s\S]*$/, '').trim();
+    const cleaned = gv('voiceTranscript').trim();
     sv('voiceTranscript', cleaned);
     updateVoiceStatus(cleaned ? 'Inspreken gestopt, klaar om te verwerken' : 'Inspreken gestopt');
   };
