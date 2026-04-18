@@ -576,6 +576,19 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <!-- ══════ 3. ARTIKELEN ZOEKEN ══════ -->
 <div class="section">
+  <div class="card" style="margin-bottom:12px; border:1px solid rgba(90,145,56,.25); background:linear-gradient(180deg, rgba(90,145,56,.06), rgba(90,145,56,.02));">
+    <div class="card-header">Spraak invoer v1 <span style="font-weight:400;font-size:11px;opacity:.8">(spreek vrij, controleer daarna)</span></div>
+    <div class="card-body">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+        <button class="btn btn-primary" id="voiceStartBtn" onclick="toggleVoiceInput()">Start inspreken</button>
+        <button class="btn btn-outline" onclick="processVoiceTranscript()">Verwerk tekst naar offerte</button>
+        <button class="btn btn-outline" onclick="clearVoiceTranscript()">Wissen</button>
+        <span id="voiceStatus" style="font-size:12px; color:var(--muted);">Klaar om te luisteren</span>
+      </div>
+      <textarea id="voiceTranscript" rows="4" placeholder="Bijvoorbeeld: maak een offerte voor Tjaden, contactpersoon Piet, 4 boringen tot 4 meter min maaiveld, afwerken met peilbuis..." oninput="updateVoiceStatus('Transcript aangepast')" style="font-size:14px;"></textarea>
+      <div style="margin-top:8px; font-size:12px; color:var(--muted); line-height:1.5;">V1 werkt als slimme assistent: spraak naar tekst, tekst naar voorstel. De tool vult alvast klant, project en herkende regels in.</div>
+    </div>
+  </div>
   <div class="search-section">
     <input id="artikelZoek" placeholder="Zoek artikel op naam of code... (klik om toe te voegen)" oninput="filterArtikelen()">
   </div>
@@ -1062,6 +1075,235 @@ function addArtikel(r) {
   renderOfferte();
   autoSave();
   showToast('✓ ' + r[3] + ' toegevoegd');
+}
+
+function addArtikelWithAantal(r, aantal) {
+  offerte.regels.push({ id: nextId++, code: r[2], omschrijving: r[3], eenheid: r[4], categorie: r[1], prijs: parseFloat(r[5]) || 0, aantal: parseFloat(aantal) || 1, custom: false });
+}
+
+let voiceRecognition = null;
+let voiceListening = false;
+
+function updateVoiceStatus(msg) {
+  const el = document.getElementById('voiceStatus');
+  if (el) el.textContent = msg || '';
+}
+
+function clearVoiceTranscript() {
+  sv('voiceTranscript', '');
+  updateVoiceStatus('Leeg gemaakt');
+}
+
+function setupVoiceRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  if (voiceRecognition) return voiceRecognition;
+
+  voiceRecognition = new SR();
+  voiceRecognition.lang = 'nl-NL';
+  voiceRecognition.interimResults = true;
+  voiceRecognition.continuous = true;
+
+  voiceRecognition.onstart = function() {
+    voiceListening = true;
+    const btn = document.getElementById('voiceStartBtn');
+    if (btn) btn.textContent = 'Stop inspreken';
+    updateVoiceStatus('Luistert, spreek maar');
+  };
+
+  voiceRecognition.onresult = function(event) {
+    let finalText = '';
+    let interimText = '';
+    for (let i = 0; i < event.results.length; i++) {
+      const txt = event.results[i][0] ? event.results[i][0].transcript : '';
+      if (event.results[i].isFinal) finalText += txt + ' ';
+      else interimText += txt + ' ';
+    }
+    const base = gv('voiceTranscript').split('\n--- live ---\n')[0].trim();
+    const combined = (base + ' ' + finalText).trim();
+    sv('voiceTranscript', interimText.trim() ? (combined + '\n--- live ---\n' + interimText.trim()) : combined);
+    updateVoiceStatus(interimText.trim() ? 'Luistert, tekst wordt live bijgewerkt' : 'Tekst vastgelegd');
+  };
+
+  voiceRecognition.onerror = function(event) {
+    updateVoiceStatus('Spraakfout: ' + (event.error || 'onbekend'));
+  };
+
+  voiceRecognition.onend = function() {
+    voiceListening = false;
+    const btn = document.getElementById('voiceStartBtn');
+    if (btn) btn.textContent = 'Start inspreken';
+    const cleaned = gv('voiceTranscript').replace(/\n--- live ---\n[\s\S]*$/, '').trim();
+    sv('voiceTranscript', cleaned);
+    updateVoiceStatus(cleaned ? 'Inspreken gestopt, klaar om te verwerken' : 'Inspreken gestopt');
+  };
+
+  return voiceRecognition;
+}
+
+function toggleVoiceInput() {
+  const sr = setupVoiceRecognition();
+  if (!sr) {
+    showToast('Deze browser ondersteunt geen spraakherkenning');
+    updateVoiceStatus('Geen browser-spraak beschikbaar');
+    return;
+  }
+  if (voiceListening) sr.stop();
+  else sr.start();
+}
+
+function normalizeVoiceText(text) {
+  return (text || '')
+    .toLowerCase()
+    .replace(/\been\b/g, '1')
+    .replace(/\btwee\b/g, '2')
+    .replace(/\bdrie\b/g, '3')
+    .replace(/\bvier\b/g, '4')
+    .replace(/\bvijf\b/g, '5')
+    .replace(/\bzes\b/g, '6')
+    .replace(/\bzeven\b/g, '7')
+    .replace(/\bacht\b/g, '8')
+    .replace(/\bnegen\b/g, '9')
+    .replace(/\btien\b/g, '10')
+    .replace(/contact\s+persoon/g, 'contactpersoon')
+    .replace(/m\.?\s*mv/g, 'm-mv')
+    .replace(/min maaiveld/g, 'm-mv')
+    .replace(/meter min maaiveld/g, 'm-mv')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findBestArtikelMatch(searchTerms) {
+  const lijst = document.getElementById('prijslijstSelect').value;
+  const rows = PRIJSDATA.filter(r => r[0] === lijst);
+  let best = null;
+  let bestScore = -1;
+
+  rows.forEach(r => {
+    const hay = (String(r[2] || '') + ' ' + String(r[3] || '') + ' ' + String(r[1] || '')).toLowerCase();
+    let score = 0;
+    searchTerms.forEach(term => {
+      if (hay.includes(term)) score += term.length;
+    });
+    if (score > bestScore) {
+      best = r;
+      bestScore = score;
+    }
+  });
+
+  return bestScore > 0 ? best : null;
+}
+
+function processVoiceTranscript() {
+  const raw = gv('voiceTranscript').replace(/\n--- live ---\n[\s\S]*$/, '').trim();
+  if (!raw) {
+    showToast('Nog geen spraaktekst om te verwerken');
+    return;
+  }
+
+  const text = normalizeVoiceText(raw);
+  const found = [];
+  const hasPeilbuis = /peilbuis|peilbuizen/.test(text);
+
+  const klantMatch = raw.match(/(?:offerte voor|voor)\s+([^,]+?)(?=,| contact| project| locatie|$)/i);
+  if (klantMatch && !gv('klantBedrijf')) {
+    sv('klantBedrijf', klantMatch[1].trim());
+    found.push('klant');
+  }
+
+  const contactMatch = raw.match(/contact(?:\s*persoon)?\s+(?:is\s+)?([^,]+?)(?=,| project| locatie|$)/i);
+  if (contactMatch && !gv('klantContact')) {
+    sv('klantContact', contactMatch[1].trim());
+    found.push('contact');
+  }
+
+  const locatieMatch = raw.match(/locatie\s+(?:is\s+)?([^,]+?)(?=,| project|$)/i);
+  if (locatieMatch && !gv('projectLocatie')) {
+    sv('projectLocatie', locatieMatch[1].trim());
+    found.push('locatie');
+  }
+
+  const projectMatch = raw.match(/project(?:naam)?\s+(?:is\s+)?([^,]+?)(?=,| locatie|$)/i);
+  if (projectMatch && !gv('projectNaam')) {
+    sv('projectNaam', projectMatch[1].trim());
+    found.push('project');
+  }
+
+  const boringMatch = text.match(/(\d+)\s+boringen?.*?(?:tot|van)\s+(\d+[\.,]?\d*)\s*(?:m|meter)?-?mv/);
+  let usedCombinedPeilbuis = false;
+  if (boringMatch && hasPeilbuis) {
+    const aantal = parseInt(boringMatch[1], 10) || 1;
+    const diepte = parseFloat(boringMatch[2].replace(',', '.'));
+    const combinedArtikel = findBestArtikelMatch(['peilbuis', 'tot ' + String(diepte)]) || findBestArtikelMatch(['peilbuis', 'plaatsen']) || findBestArtikelMatch(['peilbuis']);
+    if (combinedArtikel) {
+      addArtikelWithAantal(combinedArtikel, aantal);
+      found.push(aantal + 'x boring+peilbuis');
+      usedCombinedPeilbuis = true;
+    }
+  }
+
+  if (boringMatch && !usedCombinedPeilbuis) {
+    const aantal = parseInt(boringMatch[1], 10) || 1;
+    const diepte = parseFloat(boringMatch[2].replace(',', '.'));
+    const boringArtikel = findBestArtikelMatch(['boring', 'tot ' + String(diepte) + 'm']) || findBestArtikelMatch(['boring']);
+    if (boringArtikel) {
+      addArtikelWithAantal(boringArtikel, aantal);
+      found.push(aantal + 'x boring');
+    } else {
+      offerte.regels.push({ id: nextId++, code: '', omschrijving: aantal + ' boringen tot ' + diepte + ' m-mv', eenheid: 'Stuk', categorie: 'Overig', prijs: 0, aantal: 1, custom: true });
+      found.push('boring als vrije regel');
+    }
+  }
+
+  if (hasPeilbuis && !usedCombinedPeilbuis) {
+    const pbArtikel = findBestArtikelMatch(['peilbuis', 'plaatsen']) || findBestArtikelMatch(['peilbuis']);
+    if (pbArtikel) {
+      const aantalPb = (boringMatch ? parseInt(boringMatch[1], 10) : 1) || 1;
+      addArtikelWithAantal(pbArtikel, aantalPb);
+      found.push(aantalPb + 'x peilbuis');
+    }
+  }
+
+  if (text.includes('klic')) {
+    const klicArtikel = findBestArtikelMatch(['klic']);
+    if (klicArtikel) {
+      addArtikelWithAantal(klicArtikel, 1);
+      found.push('klic');
+    }
+  }
+
+  if (text.includes('straatpot')) {
+    const straatpotArtikel = findBestArtikelMatch(['straatpot']);
+    if (straatpotArtikel) {
+      addArtikelWithAantal(straatpotArtikel, boringMatch ? parseInt(boringMatch[1], 10) : 1);
+      found.push('straatpot');
+    }
+  }
+
+  if (text.includes('inmeten')) {
+    const meetArtikel = findBestArtikelMatch(['inmeten']);
+    if (meetArtikel) {
+      addArtikelWithAantal(meetArtikel, 1);
+      found.push('inmeten');
+    }
+  }
+
+  if (text.includes('sonic')) {
+    const sonicArtikel = findBestArtikelMatch(['dag sonic']) || findBestArtikelMatch(['sonic']);
+    if (sonicArtikel) {
+      addArtikelWithAantal(sonicArtikel, 1);
+      found.push('sonic');
+    }
+  }
+
+  const notitiePrefix = '[Spraaknotitie v1]\n';
+  const existing = gv('opmerkingen');
+  sv('opmerkingen', existing ? (existing + '\n\n' + notitiePrefix + raw) : (notitiePrefix + raw));
+
+  renderOfferte();
+  autoSave();
+  updateVoiceStatus(found.length ? ('Verwerkt: ' + found.join(', ')) : 'Tekst opgeslagen als notitie, niets hard herkend');
+  showToast(found.length ? ('Spraak verwerkt: ' + found.join(', ')) : 'Spraak opgeslagen als notitie');
 }
 
 function addCustomRow() {
