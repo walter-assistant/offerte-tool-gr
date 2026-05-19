@@ -1474,11 +1474,21 @@ function renderAanvraagPreview(parsed) {
     '</div>';
 }
 
+function shouldReplaceAanvraagField(id, currentValue) {
+  const v = cleanAanvraagValue(currentValue || '');
+  if (!v) return true;
+  // Vervang duidelijke import-rommel uit eerdere analysepogingen automatisch.
+  if (id === 'klantBedrijf' && (/^(o\s+|•\s+)/i.test(v) || /\b(monstername|boring|boorwerk|offerte plus planning|op aanwijzen|beschikbaarheid en prijs)\b/i.test(v) || v.length > 80)) return true;
+  if (id === 'klantContact' && /\b(tussen .* en |telefonisch contact|enrico en bouwe|offerte|aanvraag)\b/i.test(v)) return true;
+  if (id === 'projectLocatie' && /^(groningen|nederland)$/i.test(v) && /fugro|rsk|land b\.v/i.test(gv('klantBedrijf'))) return true;
+  return false;
+}
+
 function applyAanvraagImport() {
   const parsed = aanvraagImportProposal;
   if (!parsed) { showToast('Analyseer eerst een aanvraag'); return; }
   const overwrite = document.getElementById('aanvraagOverwrite')?.checked;
-  const fill = (id, value) => { if (value && (overwrite || !gv(id))) sv(id, value); };
+  const fill = (id, value) => { if (value && (overwrite || !gv(id) || shouldReplaceAanvraagField(id, gv(id)))) sv(id, value); };
   fill('klantBedrijf', parsed.klant.bedrijf);
   fill('klantContact', parsed.klant.contact);
   fill('klantAdres', parsed.klant.adres);
