@@ -1624,8 +1624,15 @@ function preloadLogo() {
     img.onload = function() {
       try {
         var c = document.createElement('canvas');
-        c.width = img.naturalWidth; c.height = img.naturalHeight;
-        c.getContext('2d').drawImage(img, 0, 0);
+        // Houd PDF's klein: embed het logo op PDF-resolutie i.p.v. de volledige 1920px PNG.
+        var maxLogoWidth = 360;
+        var scale = Math.min(1, maxLogoWidth / img.naturalWidth);
+        c.width = Math.round(img.naturalWidth * scale);
+        c.height = Math.round(img.naturalHeight * scale);
+        var ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, c.width, c.height);
         GR_LOGO_DATA = c.toDataURL('image/png');
       } catch(e) { console.warn('logo canvas fail', e); }
       resolve();
@@ -2718,7 +2725,7 @@ function wbRecalc() {
 async function exportWerkbonPDF() {
   if (!GR_LOGO_DATA) { await preloadLogo(); }
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   const W = 210, M = 15, CW = W - 2*M;
   let y = 15;
 
