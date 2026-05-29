@@ -2749,11 +2749,15 @@ async function exportWerkbonPDF() {
   ];
   fields.forEach(([label, val]) => {
     if (!val) return;
+    if (y > 270) { doc.addPage(); y = 20; }
+    const valueX = M + 45;
+    const valueMaxW = W - M - valueX;
     doc.setFont('helvetica', 'bold');
     doc.text(label + ':', M, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(val, M + 45, y);
-    y += 5;
+    const valueLines = doc.splitTextToSize(String(val), valueMaxW);
+    doc.text(valueLines, valueX, y);
+    y += Math.max(1, valueLines.length) * 5;
   });
   y += 5;
 
