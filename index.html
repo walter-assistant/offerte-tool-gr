@@ -1648,6 +1648,60 @@ function addGRLogo(doc, x, y, w, h) {
 if (typeof window !== 'undefined') { window.addEventListener('load', preloadLogo); }
 
 // ═══════════════════════════════════════════════
+// SHAREPOINT OPSLAG
+// ═══════════════════════════════════════════════
+function sanitizeSharePointPart(value, fallback) {
+  return String(value || fallback || '')
+    .normalize('NFKC')
+    .replace(/[~"#%&*:<>?/\\{|}\u0000-\u001f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/[. ]+$/g, '')
+    .trim()
+    .slice(0, 120) || fallback;
+}
+
+function getSharePointProjectFolderName() {
+  const nummer = sanitizeSharePointPart(gv('offerteNummer'), 'Zonder nummer');
+  const locatie = sanitizeSharePointPart(gv('projectLocatie') || gv('projectNaam'), 'Zonder locatie');
+  return nummer + ' - ' + locatie;
+}
+
+function blobToBase64(blob) {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onloadend = function() { resolve(String(reader.result).split(',')[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function savePdfToSharePoint(pdfBlob, filename) {
+  const klant = sanitizeSharePointPart(gv('klantBedrijf'), 'Onbekende klant');
+  const projectFolder = getSharePointProjectFolderName();
+  if (!gv('klantBedrijf') || (!gv('projectLocatie') && !gv('projectNaam'))) {
+    showToast('⚠️ SharePoint overgeslagen: vul klant en project/locatie in');
+    return null;
+  }
+
+  showToast('⏳ SharePoint-map aanmaken...');
+  const pdfBase64 = await blobToBase64(pdfBlob);
+  const res = await fetch('/api/sharepoint-project', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      customerName: klant,
+      projectFolderName: projectFolder,
+      filename: filename,
+      pdfBase64: pdfBase64
+    })
+  });
+  const data = await res.json().catch(function() { return {}; });
+  if (!res.ok || !data.ok) throw new Error(data.error || 'SharePoint upload mislukt');
+  showToast('✅ SharePoint-map klaar + PDF opgeslagen');
+  return data;
+}
+
+// ═══════════════════════════════════════════════
 // PDF EXPORT
 // ═══════════════════════════════════════════════
 async function exportPDF() {
@@ -1895,8 +1949,17 @@ async function exportPDF() {
 
   const projectnummer = (gv('offerteNummer') || 'zonder-projectnummer').replace(/\s+/g, '_');
   const naam = (gv('klantBedrijf') || 'offerte').replace(/\s+/g, '_');
-  doc.save('Offerte_' + projectnummer + '_' + naam + '_' + gv('offerteDatum') + '.pdf');
+  const filename = 'Offerte_' + projectnummer + '_' + naam + '_' + gv('offerteDatum') + '.pdf';
+  const pdfBlob = doc.output('blob');
+  doc.save(filename);
   showToast('📄 PDF geëxporteerd');
+
+  try {
+    await savePdfToSharePoint(pdfBlob, filename);
+  } catch (err) {
+    console.error('SharePoint fout:', err);
+    showToast('⚠️ PDF lokaal klaar, SharePoint niet gelukt: ' + err.message);
+  }
 }
 
 // ═══════════════════════════════════════════════
