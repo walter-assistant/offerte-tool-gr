@@ -95,16 +95,44 @@ async function createFolder(token, driveId, parentPath, name) {
   return json;
 }
 
+function normalizeName(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+async function resolveCustomerFolder(token, driveId, wantedName) {
+  const wanted = cleanPart(wantedName, 'Onbekende klant');
+  const wantedNorm = normalizeName(wanted);
+
+  const exact = await getItemByPath(token, driveId, `${BASE_PATH}/${wanted}`);
+  if (exact) return { name: exact.name, item: exact, created: false };
+
+  const parent = await getItemByPath(token, driveId, BASE_PATH);
+  const { json: children } = await graph(token, `/drives/${driveId}/items/${parent.id}/children?$select=name,folder`);
+  const folders = (children.value || []).filter(item => item.folder);
+  const match = folders.find(item => {
+    const nameNorm = normalizeName(item.name);
+    return nameNorm === wantedNorm || nameNorm.startsWith(`${wantedNorm} `) || wantedNorm.startsWith(`${nameNorm} `);
+  });
+
+  if (match) return { name: match.name, item: match, created: false };
+  const created = await createFolder(token, driveId, BASE_PATH, wanted);
+  return { name: created.name, item: created, created: true };
+}
+
 async function ensureProject(token, drive) {
   const template = await getItemByPath(token, drive.id, TEMPLATE_PATH);
   if (!template) throw new Error(`Template-map niet gevonden: ${TEMPLATE_PATH}`);
 
   const customer = cleanPart(this.customerName, 'Onbekende klant');
   const project = cleanPart(this.projectFolderName, 'Nieuw project');
-  const customerPath = `${BASE_PATH}/${customer}`;
+  const customerFolder = await resolveCustomerFolder(token, drive.id, customer);
+  const customerPath = `${BASE_PATH}/${customerFolder.name}`;
   const projectPath = `${customerPath}/${project}`;
 
-  await createFolder(token, drive.id, BASE_PATH, customer);
   let projectItem = await getItemByPath(token, drive.id, projectPath);
   let created = false;
 
@@ -139,6 +167,10 @@ async function uploadPdf(token, drive, folderPath, filename, base64) {
 }
 
 module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
     const body = req.body || {};

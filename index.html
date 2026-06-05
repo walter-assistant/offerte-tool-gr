@@ -1685,7 +1685,10 @@ async function savePdfToSharePoint(pdfBlob, filename) {
 
   showToast('⏳ SharePoint-map aanmaken...');
   const pdfBase64 = await blobToBase64(pdfBlob);
-  const res = await fetch('/api/sharepoint-project', {
+  const apiUrl = location.hostname.endsWith('github.io')
+    ? 'https://offerte-gr.vercel.app/api/sharepoint-project'
+    : '/api/sharepoint-project';
+  const res = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({

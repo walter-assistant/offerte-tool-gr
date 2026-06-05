@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/sharepoint-project.js": {
+      "regions": ["fra1"]
+    }
+  }
+}
