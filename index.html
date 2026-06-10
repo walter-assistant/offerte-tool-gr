@@ -2063,16 +2063,17 @@ function renderOfferteSelect() {
   const sel = document.getElementById('offerteSelect');
   const count = document.getElementById('offerteSearchCount');
   const filtered = getFilteredOffertes();
+  const currentInFiltered = filtered.some(o => o.id === currentOfferteId);
   if (!sel) return;
   if (!filtered.length) {
     sel.innerHTML = '<option value="">Geen offertes gevonden</option>';
     sel.disabled = true;
   } else {
     sel.disabled = false;
-    sel.innerHTML = filtered.map(o =>
+    const placeholder = currentInFiltered ? '' : '<option value="" selected>Kies offerte uit zoekresultaat...</option>';
+    sel.innerHTML = placeholder + filtered.map(o =>
       `<option value="${esc(o.id)}" ${o.id === currentOfferteId ? 'selected' : ''}>${esc(o.name || 'Naamloze offerte')}</option>`
     ).join('');
-    if (!filtered.some(o => o.id === currentOfferteId)) sel.selectedIndex = 0;
   }
   if (count) count.textContent = filtered.length === allOffertes.length ? `${allOffertes.length} totaal` : `${filtered.length}/${allOffertes.length}`;
 }
