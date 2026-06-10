@@ -1156,11 +1156,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const sel = document.getElementById('prijslijstSelect');
   lijsten.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
   document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
-  // Klanten dropdown vullen
-  if (typeof KLANTEN !== 'undefined') {
-    const ks = document.getElementById('klantSelect');
-    KLANTEN.forEach((k, i) => { const o = document.createElement('option'); o.value = i; o.textContent = k.naam; ks.appendChild(o); });
-  }
+  // Klanten dropdown vullen (vaste lijst + later aangevuld vanuit opgeslagen offertes)
+  renderKlantSelect();
   // Auth init — app wordt geladen via showApp() na login
   initAuth();
   populateBibSelect();
@@ -1979,6 +1976,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let currentOfferteId = null;
 let allOffertes = [];
+let savedKlanten = [];
 let saveTimer = null;
 let isRegistering = false;
 
@@ -2036,6 +2034,7 @@ async function showApp() {
 async function loadOffertesList() {
   const { data } = await sb.from('offertes').select('id, name, updated_at, data').order('updated_at', { ascending: false });
   allOffertes = data || [];
+  renderKlantSelect();
 }
 
 function offerteSearchText(o) {
@@ -2148,6 +2147,7 @@ async function cloudSave() {
     const local = allOffertes.find(o => o.id === currentOfferteId);
     if (local) { local.name = name; local.data = state; local.updated_at = new Date().toISOString(); }
     renderOfferteSelect();
+    renderKlantSelect();
     setSaveStatus('✅ Opgeslagen');
   }
 }
@@ -2235,16 +2235,60 @@ async function renameOfferte() {
 }
 
 // Klant selectie
+function normKlantNaam(s) {
+  return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function renderKlantSelect() {
+  const ks = document.getElementById('klantSelect');
+  if (!ks) return;
+  const huidigeKlant = normKlantNaam(gv('klantBedrijf'));
+  const klantenMap = new Map();
+
+  if (typeof KLANTEN !== 'undefined') {
+    KLANTEN.forEach(k => {
+      if (!k?.naam) return;
+      klantenMap.set(normKlantNaam(k.naam), {
+        naam: k.naam || '', contact: k.contact || '', adres: k.adres || '', postcode: k.postcode || '', plaats: k.plaats || ''
+      });
+    });
+  }
+
+  (allOffertes || []).forEach(o => {
+    const k = o?.data?.klant || {};
+    if (!k.bedrijf) return;
+    const key = normKlantNaam(k.bedrijf);
+    const bestaand = klantenMap.get(key) || {};
+    klantenMap.set(key, {
+      naam: bestaand.naam || k.bedrijf || '',
+      contact: bestaand.contact || k.contact || '',
+      adres: bestaand.adres || k.adres || '',
+      postcode: bestaand.postcode || k.postcode || '',
+      plaats: bestaand.plaats || k.plaats || ''
+    });
+  });
+
+  savedKlanten = Array.from(klantenMap.values()).sort((a, b) => (a.naam || '').localeCompare(b.naam || '', 'nl'));
+  ks.innerHTML = '<option value="">— Kies een klant —</option>';
+  savedKlanten.forEach((k, i) => {
+    const o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = k.naam;
+    if (normKlantNaam(k.naam) === huidigeKlant) o.selected = true;
+    ks.appendChild(o);
+  });
+}
+
 function selectKlant() {
   const idx = document.getElementById('klantSelect').value;
   if (idx === '') return;
-  const k = KLANTEN[parseInt(idx)];
+  const k = savedKlanten[parseInt(idx, 10)];
   if (!k) return;
   sv('klantBedrijf', k.naam);
   sv('klantContact', k.contact);
   sv('klantAdres', k.adres);
+  sv('klantPostcode', k.postcode);
   sv('klantPlaats', k.plaats);
-  // Postcode niet in CRM data, leeg laten
   autoSave();
   showToast('👤 ' + k.naam + ' geselecteerd');
 }
