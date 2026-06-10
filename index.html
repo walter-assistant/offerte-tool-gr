@@ -582,10 +582,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .auth-card .auth-error { color: var(--danger); font-size: 12px; margin-top: 8px; text-align: center; }
 
 /* OFFERTE SELECTOR */
-.offerte-bar { background: #f0f4f8; border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.offerte-bar select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; min-width: 200px; }
+.offerte-bar { background: #f0f4f8; border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; flex-wrap: wrap; }
+.offerte-bar select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; min-width: 260px; }
+.offerte-bar .offerte-search { padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; width: 240px; max-width: 100%; background: #fff; }
 .offerte-bar .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); background: #fff; }
 .offerte-bar .btn-sm:hover { background: #e8ecf0; }
+.offerte-search-count { font-size: 11px; color: var(--muted); min-width: 70px; }
 .save-status { margin-left: auto; font-size: 11px; color: var(--muted); }
 </style>
 <!-- ARTIKELEN BIBLIOTHEEK MODAL -->
@@ -641,7 +643,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <!-- ══════ OFFERTE SELECTOR BAR ══════ -->
 <div class="offerte-bar" id="offerteBar">
   <strong>📋 Offerte:</strong>
+  <input id="offerteSearch" class="offerte-search" type="search" placeholder="Zoek klant of offertenummer..." oninput="renderOfferteSelect()">
   <select id="offerteSelect" onchange="switchOfferte()"></select>
+  <span class="offerte-search-count" id="offerteSearchCount"></span>
   <button class="btn-sm" onclick="nieuweOfferteCloud()">+ Nieuw</button>
   <button class="btn-sm" onclick="renameOfferte()">✏️ Hernoem</button>
   <button class="btn-sm" style="color:var(--danger)" onclick="deleteOfferteCloud()">🗑️ Verwijder</button>
@@ -2030,20 +2034,54 @@ async function showApp() {
 
 // Offerte CRUD
 async function loadOffertesList() {
-  const { data } = await sb.from('offertes').select('id, name, updated_at').order('updated_at', { ascending: false });
+  const { data } = await sb.from('offertes').select('id, name, updated_at, data').order('updated_at', { ascending: false });
   allOffertes = data || [];
+}
+
+function offerteSearchText(o) {
+  const d = o?.data || {};
+  return [
+    o?.name,
+    d?.nummer,
+    d?.klant?.bedrijf,
+    d?.klant?.contact,
+    d?.project?.naam,
+    d?.project?.kenmerk,
+    d?.project?.locatie
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function getFilteredOffertes() {
+  const input = document.getElementById('offerteSearch');
+  const q = (input?.value || '').trim().toLowerCase();
+  if (!q) return allOffertes;
+  const terms = q.split(/\s+/).filter(Boolean);
+  return allOffertes.filter(o => terms.every(t => offerteSearchText(o).includes(t)));
 }
 
 function renderOfferteSelect() {
   const sel = document.getElementById('offerteSelect');
-  sel.innerHTML = allOffertes.map(o =>
-    `<option value="${o.id}" ${o.id === currentOfferteId ? 'selected' : ''}>${o.name}</option>`
-  ).join('');
+  const count = document.getElementById('offerteSearchCount');
+  const filtered = getFilteredOffertes();
+  if (!sel) return;
+  if (!filtered.length) {
+    sel.innerHTML = '<option value="">Geen offertes gevonden</option>';
+    sel.disabled = true;
+  } else {
+    sel.disabled = false;
+    sel.innerHTML = filtered.map(o =>
+      `<option value="${esc(o.id)}" ${o.id === currentOfferteId ? 'selected' : ''}>${esc(o.name || 'Naamloze offerte')}</option>`
+    ).join('');
+    if (!filtered.some(o => o.id === currentOfferteId)) sel.selectedIndex = 0;
+  }
+  if (count) count.textContent = filtered.length === allOffertes.length ? `${allOffertes.length} totaal` : `${filtered.length}/${allOffertes.length}`;
 }
 
 async function switchOfferte() {
+  const selectedId = document.getElementById('offerteSelect').value;
+  if (!selectedId) return;
   await cloudSave();
-  currentOfferteId = document.getElementById('offerteSelect').value;
+  currentOfferteId = selectedId;
   await loadOfferteFromCloud(currentOfferteId);
 }
 
@@ -2097,7 +2135,12 @@ async function cloudSave() {
     name, data: state, updated_by: currentUser.id
   }).eq('id', currentOfferteId);
   if (error) { setSaveStatus('❌ Fout bij opslaan'); console.error(error); }
-  else { setSaveStatus('✅ Opgeslagen'); }
+  else {
+    const local = allOffertes.find(o => o.id === currentOfferteId);
+    if (local) { local.name = name; local.data = state; local.updated_at = new Date().toISOString(); }
+    renderOfferteSelect();
+    setSaveStatus('✅ Opgeslagen');
+  }
 }
 
 function autoSave() {
@@ -2133,6 +2176,8 @@ async function generateNextOfferteNummer() {
 
 async function nieuweOfferteCloud() {
   await cloudSave();
+  const search = document.getElementById('offerteSearch');
+  if (search) search.value = '';
   const nieuwNummer = await generateNextOfferteNummer();
   const { data, error } = await sb.from('offertes').insert({
     name: nieuwNummer,
