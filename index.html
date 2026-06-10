@@ -643,7 +643,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <!-- ══════ OFFERTE SELECTOR BAR ══════ -->
 <div class="offerte-bar" id="offerteBar">
   <strong>📋 Offerte:</strong>
-  <input id="offerteSearch" class="offerte-search" type="search" placeholder="Zoek klant of offertenummer..." oninput="renderOfferteSelect()">
+  <input id="offerteSearch" class="offerte-search" type="search" placeholder="Zoek klant of offertenummer..." oninput="handleOfferteSearch()">
   <select id="offerteSelect" onchange="switchOfferte()"></select>
   <span class="offerte-search-count" id="offerteSearchCount"></span>
   <button class="btn-sm" onclick="nieuweOfferteCloud()">+ Nieuw</button>
@@ -2063,19 +2063,27 @@ function renderOfferteSelect() {
   const sel = document.getElementById('offerteSelect');
   const count = document.getElementById('offerteSearchCount');
   const filtered = getFilteredOffertes();
-  const currentInFiltered = filtered.some(o => o.id === currentOfferteId);
   if (!sel) return;
   if (!filtered.length) {
     sel.innerHTML = '<option value="">Geen offertes gevonden</option>';
     sel.disabled = true;
   } else {
     sel.disabled = false;
-    const placeholder = currentInFiltered ? '' : '<option value="" selected>Kies offerte uit zoekresultaat...</option>';
-    sel.innerHTML = placeholder + filtered.map(o =>
+    sel.innerHTML = filtered.map(o =>
       `<option value="${esc(o.id)}" ${o.id === currentOfferteId ? 'selected' : ''}>${esc(o.name || 'Naamloze offerte')}</option>`
     ).join('');
+    if (!filtered.some(o => o.id === currentOfferteId)) sel.value = filtered[0].id;
   }
   if (count) count.textContent = filtered.length === allOffertes.length ? `${allOffertes.length} totaal` : `${filtered.length}/${allOffertes.length}`;
+}
+
+async function handleOfferteSearch() {
+  renderOfferteSelect();
+  const sel = document.getElementById('offerteSelect');
+  const selectedId = sel?.value;
+  if (selectedId && selectedId !== currentOfferteId) {
+    await switchOfferte();
+  }
 }
 
 async function switchOfferte() {
