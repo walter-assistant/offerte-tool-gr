@@ -46,6 +46,10 @@ function normalizeName(value) {
     .trim();
 }
 
+function projectKey(name) {
+  return normalizeName(String(name || '').split(/\s+-\s+/)[0] || name);
+}
+
 function normalizePath(path) {
   const clean = String(path || '')
     .replace(/\\/g, '/')
@@ -129,16 +133,34 @@ async function listFolders(token, path) {
   }
 }
 
+async function getMetadata(token, path) {
+  try {
+    return await dropbox(token, '/files/get_metadata', { path: normalizePath(path) });
+  } catch (err) {
+    if (/not_found/i.test(err.message || '')) return null;
+    throw err;
+  }
+}
+
+function findMatchingFolder(folders, wantedName, projectMode = false) {
+  const wantedNorm = normalizeName(wantedName);
+  const wantedKey = projectKey(wantedName);
+  return folders.find(item => {
+    const nameNorm = normalizeName(item.name);
+    if (nameNorm === wantedNorm) return true;
+    if (!projectMode) return nameNorm.startsWith(`${wantedNorm} `) || wantedNorm.startsWith(`${nameNorm} `);
+    const key = projectKey(item.name);
+    return key === wantedKey || key.startsWith(`${wantedKey} `) || wantedKey.startsWith(`${key} `);
+  });
+}
+
 async function resolveCustomerFolder(token, wantedName) {
   const wanted = cleanPart(wantedName, 'Onbekende klant');
   await ensureFolder(token, BASE_PATH);
 
   const wantedNorm = normalizeName(wanted);
   const folders = await listFolders(token, BASE_PATH);
-  const match = folders.find(item => {
-    const nameNorm = normalizeName(item.name);
-    return nameNorm === wantedNorm || nameNorm.startsWith(`${wantedNorm} `) || wantedNorm.startsWith(`${nameNorm} `);
-  });
+  const match = findMatchingFolder(folders, wanted, false);
 
   if (match) return { name: match.name, path: match.path_display || match.path_lower, created: false };
 
@@ -147,7 +169,35 @@ async function resolveCustomerFolder(token, wantedName) {
   return { name: wanted, path, created: true };
 }
 
+async function resolveProjectFolder(token, customerPath, projectFolderName) {
+  await ensureFolder(token, customerPath);
+  const wanted = cleanPart(projectFolderName, 'Nieuw project');
+  const folders = await listFolders(token, customerPath);
+  const match = findMatchingFolder(folders, wanted, true);
+  if (match) return { name: match.name, path: match.path_display || match.path_lower, created: false };
+  const path = joinPath(customerPath, wanted);
+  await ensureFolder(token, path);
+  return { name: wanted, path, created: true };
+}
+
+async function getVersionedFilePath(token, requestedPath) {
+  const path = normalizePath(requestedPath);
+  if (!(await getMetadata(token, path))) return path;
+  const slash = path.lastIndexOf('/');
+  const dir = slash >= 0 ? path.slice(0, slash) : '';
+  const filename = slash >= 0 ? path.slice(slash + 1) : path;
+  const dot = filename.lastIndexOf('.');
+  const base = dot > 0 ? filename.slice(0, dot) : filename;
+  const ext = dot > 0 ? filename.slice(dot) : '';
+  for (let version = 2; version < 100; version++) {
+    const candidate = joinPath(dir, `${base} - v${version}${ext}`);
+    if (!(await getMetadata(token, candidate))) return candidate;
+  }
+  return joinPath(dir, `${base} - v${Date.now()}${ext}`);
+}
+
 async function uploadPdf(token, filePath, base64) {
+  const finalPath = await getVersionedFilePath(token, filePath);
   const bytes = Buffer.from(base64, 'base64');
   const res = await fetch(`${DROPBOX_CONTENT}/files/upload`, {
     method: 'POST',
@@ -155,18 +205,18 @@ async function uploadPdf(token, filePath, base64) {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/octet-stream',
       'Dropbox-API-Arg': JSON.stringify({
-        path: normalizePath(filePath),
-        mode: 'overwrite',
+        path: finalPath,
+        mode: 'add',
         autorename: false,
         mute: true,
-        strict_conflict: false
+        strict_conflict: true
       })
     },
     body: bytes
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error_summary || 'Dropbox upload mislukt');
-  return data;
+  return { ...data, requested_path: normalizePath(filePath), versioned: finalPath !== normalizePath(filePath) };
 }
 
 module.exports = async function handler(req, res) {
@@ -184,9 +234,9 @@ module.exports = async function handler(req, res) {
 
     const token = await getAccessToken();
     const customer = await resolveCustomerFolder(token, customerName);
-    const projectPath = joinPath(customer.path, projectFolderName);
+    const project = await resolveProjectFolder(token, customer.path, projectFolderName);
+    const projectPath = project.path;
 
-    await ensureFolder(token, projectPath);
     for (const folder of STANDARD_FOLDERS) {
       await createFolder(token, joinPath(projectPath, folder));
     }
@@ -200,9 +250,10 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       customer: customer.name,
-      project: projectFolderName,
+      project: project.name,
       path: projectPath,
       pdfPath: pdf?.path_display || null,
+      versioned: pdf?.versioned || false,
       folders: STANDARD_FOLDERS
     });
   } catch (err) {
