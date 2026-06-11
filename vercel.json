@@ -5,6 +5,9 @@
     },
     "api/dropbox-project.js": {
       "regions": ["fra1"]
+    },
+    "api/ai-aanvraag.js": {
+      "regions": ["fra1"]
     }
   }
 }

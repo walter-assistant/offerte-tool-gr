@@ -707,7 +707,24 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   </div>
 </div>
 
-<!-- 3. ARTIKELEN ZOEKEN -->
+<!-- 3. AI AANVRAAG ANALYSE -->
+<div class="section">
+  <div class="card" style="border:1px solid rgba(90,145,56,.25); background:linear-gradient(180deg, rgba(90,145,56,.04), #fff);">
+    <div class="card-header">AI aanvraag analyseren <span style="font-weight:400;font-size:11px;opacity:.8">- plak mailtekst, controleer voorstel, neem over</span></div>
+    <div class="card-body">
+      <textarea id="aiAanvraagTekst" rows="6" placeholder="Plak hier de aanvraag/mailtekst. AI probeert klant, contactpersoon, locatie, project en offerteregels te herkennen." style="font-size:13px;"></textarea>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+        <button type="button" class="btn btn-primary" onclick="analyseAiAanvraag()">AI analyseer aanvraag</button>
+        <button type="button" class="btn btn-outline" onclick="clearAiAanvraag()">Wissen</button>
+        <label style="font-size:12px; color:var(--muted); display:flex; gap:5px; align-items:center;"><input type="checkbox" id="aiOverwrite"> bestaande velden overschrijven</label>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:6px; line-height:1.4;">Let op: geplakte tekst wordt naar de AI API gestuurd. Er wordt niets ingevuld voordat jij op <strong>Neem voorstel over</strong> klikt.</div>
+      <div id="aiAanvraagPreview" style="display:none; margin-top:10px; padding:10px; border:1px solid #dfe7dc; border-radius:8px; background:#fff; font-size:13px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. ARTIKELEN ZOEKEN -->
 <div class="section">
   <div class="search-section">
     <input id="artikelZoek" placeholder="Zoek artikel op naam of code... (klik om toe te voegen)" oninput="filterArtikelen()">
@@ -1196,6 +1213,131 @@ function addArtikel(r) {
 function addArtikelWithAantal(r, aantal) {
   offerte.regels.push({ id: nextId++, code: r[2], omschrijving: r[3], eenheid: r[4], categorie: r[1], prijs: parseFloat(r[5]) || 0, aantal: parseFloat(aantal) || 1, custom: false });
 }
+
+// AI AANVRAAG ANALYSE
+let aiAanvraagProposal = null;
+
+function currentArticlePayload() {
+  const lijst = document.getElementById('prijslijstSelect')?.value;
+  return PRIJSDATA
+    .filter(r => !lijst || r[0] === lijst)
+    .slice(0, 220)
+    .map(r => ({ lijst: r[0], categorie: r[1], code: r[2], omschrijving: r[3], eenheid: r[4], prijs: parseFloat(r[5]) || 0 }));
+}
+
+function findAiArticle(regel) {
+  const lijst = document.getElementById('prijslijstSelect')?.value;
+  const rows = PRIJSDATA.filter(r => !lijst || r[0] === lijst);
+  const code = String(regel.code || '').trim().toLowerCase();
+  const oms = String(regel.omschrijving || '').trim().toLowerCase();
+  if (code) {
+    const byCode = rows.find(r => String(r[2] || '').trim().toLowerCase() === code);
+    if (byCode) return byCode;
+  }
+  if (oms) {
+    const byOms = rows.find(r => String(r[3] || '').trim().toLowerCase() === oms);
+    if (byOms) return byOms;
+  }
+  return null;
+}
+
+async function analyseAiAanvraag() {
+  const raw = gv('aiAanvraagTekst');
+  if (!raw.trim()) { showToast('Plak eerst een aanvraag/mailtekst'); return; }
+  const box = document.getElementById('aiAanvraagPreview');
+  box.style.display = 'block';
+  box.innerHTML = '<div style="color:var(--muted);">AI analyseert aanvraag...</div>';
+  try {
+    const apiUrl = location.hostname.endsWith('github.io') ? 'https://offerte-gr.vercel.app/api/ai-aanvraag' : '/api/ai-aanvraag';
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: raw, articles: currentArticlePayload() })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'AI analyse mislukt');
+    aiAanvraagProposal = data.result || null;
+    renderAiAanvraagPreview(aiAanvraagProposal, data.usage);
+    showToast('AI voorstel klaar');
+  } catch (err) {
+    console.error(err);
+    box.innerHTML = '<div style="color:var(--danger);">AI analyse niet gelukt: ' + esc(err.message) + '</div>';
+    showToast('AI analyse niet gelukt');
+  }
+}
+
+function renderAiAanvraagPreview(p, usage) {
+  const box = document.getElementById('aiAanvraagPreview');
+  if (!box) return;
+  if (!p) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const rows = [
+    ['Bedrijf', p.klant?.bedrijf], ['Contact', p.klant?.contact], ['Adres', p.klant?.adres],
+    ['Postcode', p.klant?.postcode], ['Plaats', p.klant?.plaats], ['Projectnaam', p.project?.naam],
+    ['Kenmerk', p.project?.kenmerk], ['Locatie', p.project?.locatie]
+  ].filter(([,v]) => v);
+  const regels = (p.regels || []).map((r, i) => {
+    const match = findAiArticle(r);
+    const label = match ? (esc(match[2]) + ' - ' + esc(match[3])) : esc(r.omschrijving || 'Eigen regel');
+    const prijs = match ? parseFloat(match[5]) || 0 : parseFloat(r.prijs) || 0;
+    const conf = Math.round((parseFloat(r.confidence) || 0) * 100);
+    return '<li style="margin-bottom:5px;">' + esc(r.aantal || 1) + ' × <strong>' + label + '</strong> <span style="color:var(--muted);">€ ' + fmt(prijs) + (conf ? ' · ' + conf + '% zeker' : '') + '</span>' + (r.reden ? '<br><span style="color:var(--muted);font-size:12px;">' + esc(r.reden) + '</span>' : '') + '</li>';
+  }).join('');
+  const onzeker = (p.uncertainties || []).filter(Boolean).map(u => '<li>' + esc(u) + '</li>').join('');
+  box.style.display = 'block';
+  box.innerHTML =
+    (p.summary ? '<div style="font-weight:700;margin-bottom:8px;">' + esc(p.summary) + '</div>' : '') +
+    (rows.length ? rows.map(([label,value]) => '<div style="display:flex;gap:8px;margin-bottom:4px;"><div style="min-width:105px;color:var(--muted);">' + esc(label) + '</div><div style="flex:1;">' + esc(value) + '</div></div>').join('') : '<div style="color:var(--muted);">Geen klant/projectvelden herkend.</div>') +
+    '<div style="font-weight:700;margin:10px 0 4px;">Voorgestelde regels</div>' +
+    (regels ? '<ul style="margin-left:18px;line-height:1.5;">' + regels + '</ul>' : '<div style="color:var(--muted);">Geen offerteregels voorgesteld.</div>') +
+    (onzeker ? '<div style="font-weight:700;margin:10px 0 4px;color:#9a6a00;">Controlepunten</div><ul style="margin-left:18px;color:#9a6a00;">' + onzeker + '</ul>' : '') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button type="button" class="btn btn-primary" onclick="applyAiAanvraag()">Neem voorstel over</button><button type="button" class="btn btn-outline" onclick="clearAiAanvraag()">Annuleer</button></div>';
+}
+
+function fillAiField(id, value, overwrite) {
+  if (!value) return;
+  if (overwrite || !gv(id)) sv(id, value);
+}
+
+function applyAiAanvraag() {
+  const p = aiAanvraagProposal;
+  if (!p) { showToast('Analyseer eerst een aanvraag'); return; }
+  const overwrite = document.getElementById('aiOverwrite')?.checked;
+  fillAiField('klantBedrijf', p.klant?.bedrijf, overwrite);
+  fillAiField('klantContact', p.klant?.contact, overwrite);
+  fillAiField('klantAdres', p.klant?.adres, overwrite);
+  fillAiField('klantPostcode', p.klant?.postcode, overwrite);
+  fillAiField('klantPlaats', p.klant?.plaats, overwrite);
+  fillAiField('projectNaam', p.project?.naam, overwrite);
+  fillAiField('projectKenmerk', p.project?.kenmerk, overwrite);
+  fillAiField('projectLocatie', p.project?.locatie, overwrite);
+  if (p.opmerkingen) {
+    const bestaand = gv('opmerkingen');
+    if (overwrite || !bestaand) sv('opmerkingen', p.opmerkingen);
+    else sv('opmerkingen', bestaand + '\n\n' + p.opmerkingen);
+  }
+  (p.regels || []).forEach(r => {
+    const match = findAiArticle(r);
+    const aantal = parseFloat(r.aantal) || 1;
+    if (match && r.type !== 'custom') {
+      offerte.regels.push({ id: nextId++, code: match[2], omschrijving: match[3], eenheid: match[4], categorie: match[1], prijs: parseFloat(match[5]) || 0, aantal, custom: false });
+    } else {
+      offerte.regels.push({ id: nextId++, code: r.code || '', omschrijving: r.omschrijving || 'AI voorstel', eenheid: r.eenheid || 'Stuk', categorie: r.categorie || 'Overig', prijs: parseFloat(r.prijs) || 0, aantal, custom: true });
+    }
+  });
+  populateKlantDropdown();
+  renderOfferte();
+  autoSave();
+  showToast('AI voorstel overgenomen');
+}
+
+function clearAiAanvraag() {
+  sv('aiAanvraagTekst', '');
+  aiAanvraagProposal = null;
+  const box = document.getElementById('aiAanvraagPreview');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+  showToast('AI aanvraag gewist');
+}
+
 function addCustomRow() {
   offerte.regels.push({ id: nextId++, code: '', omschrijving: '', eenheid: 'Stuk', categorie: 'Overig', prijs: 0, aantal: 1, custom: true });
   renderOfferte();
