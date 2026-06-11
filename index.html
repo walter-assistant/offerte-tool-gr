@@ -1649,9 +1649,9 @@ function addGRLogo(doc, x, y, w, h) {
 if (typeof window !== 'undefined') { window.addEventListener('load', preloadLogo); }
 
 // ═══════════════════════════════════════════════
-// SHAREPOINT OPSLAG
+// DROPBOX OPSLAG
 // ═══════════════════════════════════════════════
-function sanitizeSharePointPart(value, fallback) {
+function sanitizeDropboxPart(value, fallback) {
   return String(value || fallback || '')
     .normalize('NFKC')
     .replace(/[~"#%&*:<>?/\\{|}\u0000-\u001f]/g, ' ')
@@ -1661,9 +1661,9 @@ function sanitizeSharePointPart(value, fallback) {
     .slice(0, 120) || fallback;
 }
 
-function getSharePointProjectFolderName() {
-  const nummer = sanitizeSharePointPart(gv('offerteNummer'), 'Zonder nummer');
-  const locatie = sanitizeSharePointPart(gv('projectLocatie') || gv('projectNaam'), 'Zonder locatie');
+function getDropboxProjectFolderName() {
+  const nummer = sanitizeDropboxPart(gv('offerteNummer'), 'Zonder nummer');
+  const locatie = sanitizeDropboxPart(gv('projectLocatie') || gv('projectNaam'), 'Zonder locatie');
   return nummer + ' - ' + locatie;
 }
 
@@ -1676,19 +1676,19 @@ function blobToBase64(blob) {
   });
 }
 
-async function savePdfToSharePoint(pdfBlob, filename) {
-  const klant = sanitizeSharePointPart(gv('klantBedrijf'), 'Onbekende klant');
-  const projectFolder = getSharePointProjectFolderName();
+async function savePdfToDropbox(pdfBlob, filename) {
+  const klant = sanitizeDropboxPart(gv('klantBedrijf'), 'Onbekende klant');
+  const projectFolder = getDropboxProjectFolderName();
   if (!gv('klantBedrijf') || (!gv('projectLocatie') && !gv('projectNaam'))) {
-    showToast('⚠️ SharePoint overgeslagen: vul klant en project/locatie in');
+    showToast('⚠️ Dropbox overgeslagen: vul klant en project/locatie in');
     return null;
   }
 
-  showToast('⏳ SharePoint-map aanmaken...');
+  showToast('⏳ Dropbox-map aanmaken...');
   const pdfBase64 = await blobToBase64(pdfBlob);
   const apiUrl = location.hostname.endsWith('github.io')
-    ? 'https://offerte-gr.vercel.app/api/sharepoint-project'
-    : '/api/sharepoint-project';
+    ? 'https://offerte-gr.vercel.app/api/dropbox-project'
+    : '/api/dropbox-project';
   const res = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -1700,8 +1700,8 @@ async function savePdfToSharePoint(pdfBlob, filename) {
     })
   });
   const data = await res.json().catch(function() { return {}; });
-  if (!res.ok || !data.ok) throw new Error(data.error || 'SharePoint upload mislukt');
-  showToast('✅ SharePoint-map klaar + PDF opgeslagen');
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Dropbox upload mislukt');
+  showToast('✅ Dropbox-map klaar + PDF opgeslagen');
   return data;
 }
 
@@ -1959,10 +1959,10 @@ async function exportPDF() {
   showToast('📄 PDF geëxporteerd');
 
   try {
-    await savePdfToSharePoint(pdfBlob, filename);
+    await savePdfToDropbox(pdfBlob, filename);
   } catch (err) {
-    console.error('SharePoint fout:', err);
-    showToast('⚠️ PDF lokaal klaar, SharePoint niet gelukt: ' + err.message);
+    console.error('Dropbox fout:', err);
+    showToast('⚠️ PDF lokaal klaar, Dropbox niet gelukt: ' + err.message);
   }
 }
 

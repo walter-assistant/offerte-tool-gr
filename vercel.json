@@ -2,6 +2,9 @@
   "functions": {
     "api/sharepoint-project.js": {
       "regions": ["fra1"]
+    },
+    "api/dropbox-project.js": {
+      "regions": ["fra1"]
     }
   }
 }
