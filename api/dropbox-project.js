@@ -4,6 +4,7 @@ const BASE_PATH = process.env.DROPBOX_OFFERTE_BASE_PATH || '/werkmap/Offerte map
 const STANDARD_FOLDERS = [
   'Bodemonderzoek',
   'Bodemopbouw dino',
+  'Boorprofiel',
   'dag rapport',
   'EED',
   "Foto's",
