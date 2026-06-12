@@ -1324,7 +1324,7 @@ function applyAiAanvraag() {
       offerte.regels.push({ id: nextId++, code: r.code || '', omschrijving: r.omschrijving || 'AI voorstel', eenheid: r.eenheid || 'Stuk', categorie: r.categorie || 'Overig', prijs: parseFloat(r.prijs) || 0, aantal, custom: true });
     }
   });
-  populateKlantDropdown();
+  renderKlantSelect();
   renderOfferte();
   autoSave();
   showToast('AI voorstel overgenomen');
