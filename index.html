@@ -589,6 +589,30 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .offerte-bar .btn-sm:hover { background: #e8ecf0; }
 .offerte-search-count { font-size: 11px; color: var(--muted); min-width: 70px; }
 .save-status { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+/* DASHBOARD */
+.dashboard-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+.dashboard-controls .form-group { min-width:140px; margin-bottom:0; }
+.dash-grid { display:grid; grid-template-columns:repeat(4, minmax(150px, 1fr)); gap:12px; margin-bottom:14px; }
+.dash-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+.dash-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-bottom:6px; }
+.dash-value { font-size:24px; font-weight:800; color:var(--primary); line-height:1.1; }
+.dash-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+.dash-layout { display:grid; grid-template-columns:1.35fr .85fr; gap:12px; }
+.dash-bars { display:flex; flex-direction:column; gap:7px; }
+.dash-bar-row { display:grid; grid-template-columns:42px 1fr 110px; gap:8px; align-items:center; font-size:12px; }
+.dash-bar-track { height:18px; background:#edf3ea; border-radius:999px; overflow:hidden; border:1px solid #dce8d7; }
+.dash-bar-fill { height:100%; background:linear-gradient(90deg, var(--primary), var(--accent)); border-radius:999px; min-width:2px; }
+.dash-list { display:flex; flex-direction:column; gap:8px; }
+.dash-list-row { display:grid; grid-template-columns:1fr auto; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.dash-list-row strong { color:var(--text); }
+.dash-table { width:100%; border-collapse:collapse; font-size:12px; }
+.dash-table th { text-align:left; padding:7px 8px; background:var(--primary); color:#fff; font-size:11px; text-transform:uppercase; }
+.dash-table td { padding:7px 8px; border-bottom:1px solid var(--border); }
+.dash-table .num { text-align:right; font-weight:700; }
+@media(max-width:850px) { .dash-grid { grid-template-columns:1fr 1fr; } .dash-layout { grid-template-columns:1fr; } }
+@media(max-width:520px) { .dash-grid { grid-template-columns:1fr; } .dash-bar-row { grid-template-columns:36px 1fr 82px; } .dash-value { font-size:21px; } }
+
 </style>
 <!-- ARTIKELEN BIBLIOTHEEK MODAL -->
 <div id="bibModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:9999; align-items:center; justify-content:center;">
@@ -656,9 +680,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <!-- ══════ TAB BAR ══════ -->
 <div class="tab-bar">
-  <div class="tab-btn active" onclick="switchTab('offerte')">📋 Offerte</div>
-  <div class="tab-btn" onclick="switchTab('pva')">📑 Plan van Aanpak</div>
-  <div class="tab-btn" onclick="switchTab('werkbon')">🧾 Werkbon</div>
+  <div class="tab-btn active" data-tab="offerte" onclick="switchTab('offerte')">📋 Offerte</div>
+  <div class="tab-btn" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</div>
+  <div class="tab-btn" data-tab="pva" onclick="switchTab('pva')">📑 Plan van Aanpak</div>
+  <div class="tab-btn" data-tab="werkbon" onclick="switchTab('werkbon')">🧾 Werkbon</div>
 </div>
 
 <!-- ══════ TAB: OFFERTE ══════ -->
@@ -776,6 +801,61 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 </div>
 
 </div><!-- tabOfferte -->
+
+<!-- ══════ TAB: DASHBOARD ══════ -->
+<div id="tabDashboard" class="tab-content">
+  <div class="section">
+    <div class="card">
+      <div class="card-header">📊 Offerte-inzichten <span style="font-weight:400;font-size:11px;opacity:.75">— bedragen ex. btw op basis van opgeslagen offertes</span></div>
+      <div class="card-body">
+        <div class="dashboard-controls">
+          <div class="form-group">
+            <label>Periode</label>
+            <select id="dashPeriod" onchange="renderDashboard()">
+              <option value="month">Deze maand</option>
+              <option value="quarter">Dit kwartaal</option>
+              <option value="half">Dit half jaar</option>
+              <option value="year" selected>Dit jaar</option>
+              <option value="all">Alles</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Jaar</label>
+            <input id="dashYear" type="number" min="2020" max="2100" onchange="renderDashboard()">
+          </div>
+          <button class="btn btn-outline" onclick="loadOffertesList().then(renderDashboard)">↻ Vernieuwen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-label">Totaal offertewaarde</div><div class="dash-value" id="dashTotal">€ 0</div><div class="dash-sub" id="dashPeriodLabel">—</div></div>
+      <div class="dash-card"><div class="dash-label">Aantal offertes</div><div class="dash-value" id="dashCount">0</div><div class="dash-sub">opgeslagen offertes</div></div>
+      <div class="dash-card"><div class="dash-label">Gemiddelde waarde</div><div class="dash-value" id="dashAvg">€ 0</div><div class="dash-sub">per offerte</div></div>
+      <div class="dash-card"><div class="dash-label">Hoogste offerte</div><div class="dash-value" id="dashMax">€ 0</div><div class="dash-sub" id="dashMaxName">—</div></div>
+    </div>
+  </div>
+
+  <div class="section dash-layout">
+    <div class="card">
+      <div class="card-header">Waarde per maand</div>
+      <div class="card-body"><div class="dash-bars" id="dashMonthlyBars"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">Top klanten</div>
+      <div class="card-body"><div class="dash-list" id="dashTopCustomers"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card">
+      <div class="card-header">Offertes in selectie</div>
+      <div class="card-body" style="padding:0"><div id="dashRecent"></div></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════ TAB: PLAN VAN AANPAK ══════ -->
 <div id="tabPva" class="tab-content">
@@ -1854,6 +1934,7 @@ async function loadOffertesList() {
   const { data } = await sb.from('offertes').select('id, name, updated_at, data').order('updated_at', { ascending: false });
   allOffertes = data || [];
   renderKlantSelect();
+  if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
 }
 
 function offerteSearchText(o) {
@@ -1967,6 +2048,7 @@ async function cloudSave() {
     if (local) { local.name = name; local.data = state; local.updated_at = new Date().toISOString(); }
     renderOfferteSelect();
     renderKlantSelect();
+    if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
     setSaveStatus('✅ Opgeslagen');
   }
 }
@@ -2335,18 +2417,117 @@ function closeBibModal() {
 // TAB SWITCHING
 // ═══════════════════════════════════════════════
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', (tab === 'offerte' && i === 0) || (tab === 'pva' && i === 1) || (tab === 'werkbon' && i === 2));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === tab);
   });
-  ['tabOfferte','tabPva','tabWerkbon'].forEach(id => {
+  ['tabOfferte','tabDashboard','tabPva','tabWerkbon'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('active', id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
   });
-  document.getElementById('tabOfferte').classList.toggle('active', tab === 'offerte');
-  document.getElementById('tabPva').classList.toggle('active', tab === 'pva');
-  document.getElementById('tabWerkbon').classList.toggle('active', tab === 'werkbon');
+  if (tab === 'dashboard') renderDashboard();
   if (tab === 'pva' && currentOfferteId) pvaLoadFromCloud();
   if (tab === 'werkbon' && currentOfferteId) wbLoadFromCloud();
+}
+
+
+
+// ═══════════════════════════════════════════════
+// DASHBOARD — OFFERTE-INZICHTEN
+// ═══════════════════════════════════════════════
+function dashMoney(n) {
+  return '€ ' + (Number(n) || 0).toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function dashDateValue(o) {
+  const d = o?.data || {};
+  const raw = d.datum || o?.updated_at || '';
+  const dt = new Date(raw);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+function dashOfferteTotal(o) {
+  const d = o?.data || {};
+  const regels = d?.offerte?.regels || [];
+  const sub = regels.reduce((sum, r) => sum + ((Number(r.aantal) || 0) * (Number(r.prijs) || 0)), 0);
+  const korting = Math.max(0, Math.min(100, Number(String(d.kortingPct || '0').replace(',', '.')) || 0));
+  return sub - (sub * korting / 100);
+}
+function dashCustomer(o) {
+  return o?.data?.klant?.bedrijf || 'Onbekend';
+}
+function dashName(o) {
+  const d = o?.data || {};
+  return [d.nummer, d.klant?.bedrijf, d.project?.naam || d.project?.locatie].filter(Boolean).join(' — ') || o?.name || 'Naamloze offerte';
+}
+function dashSelectedRows() {
+  const yearEl = document.getElementById('dashYear');
+  if (yearEl && !yearEl.value) yearEl.value = new Date().getFullYear();
+  const period = document.getElementById('dashPeriod')?.value || 'year';
+  const year = Number(yearEl?.value || new Date().getFullYear());
+  const now = new Date();
+  const currentMonth = now.getFullYear() === year ? now.getMonth() : 0;
+  const currentQuarter = Math.floor(currentMonth / 3);
+  const currentHalf = currentMonth < 6 ? 0 : 1;
+  return (allOffertes || []).map(o => ({ o, date: dashDateValue(o), total: dashOfferteTotal(o) }))
+    .filter(r => r.date && r.total > 0)
+    .filter(r => {
+      if (period === 'all') return true;
+      if (r.date.getFullYear() !== year) return false;
+      if (period === 'month') return r.date.getMonth() === currentMonth;
+      if (period === 'quarter') return Math.floor(r.date.getMonth() / 3) === currentQuarter;
+      if (period === 'half') return (r.date.getMonth() < 6 ? 0 : 1) === currentHalf;
+      return true;
+    });
+}
+function renderDashboard() {
+  const root = document.getElementById('tabDashboard');
+  if (!root) return;
+  const yearEl = document.getElementById('dashYear');
+  if (yearEl && !yearEl.value) yearEl.value = new Date().getFullYear();
+  const period = document.getElementById('dashPeriod')?.value || 'year';
+  const rows = dashSelectedRows();
+  const total = rows.reduce((s, r) => s + r.total, 0);
+  const count = rows.length;
+  const avg = count ? total / count : 0;
+  const maxRow = rows.slice().sort((a, b) => b.total - a.total)[0];
+  const periodNames = { month:'deze maand', quarter:'dit kwartaal', half:'dit half jaar', year:'dit jaar', all:'alle jaren' };
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  set('dashTotal', dashMoney(total));
+  set('dashCount', String(count));
+  set('dashAvg', dashMoney(avg));
+  set('dashMax', dashMoney(maxRow?.total || 0));
+  set('dashMaxName', maxRow ? dashName(maxRow.o).slice(0, 46) : '—');
+  set('dashPeriodLabel', periodNames[period] || 'selectie');
+
+  const year = Number(yearEl?.value || new Date().getFullYear());
+  const months = Array.from({length:12}, (_, i) => ({ i, label: ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][i], total:0, count:0 }));
+  (allOffertes || []).map(o => ({ o, date: dashDateValue(o), total: dashOfferteTotal(o) }))
+    .filter(r => r.date && r.date.getFullYear() === year && r.total > 0)
+    .forEach(r => { months[r.date.getMonth()].total += r.total; months[r.date.getMonth()].count += 1; });
+  const maxMonth = Math.max(1, ...months.map(m => m.total));
+  const bars = document.getElementById('dashMonthlyBars');
+  if (bars) bars.innerHTML = months.map(m => `
+    <div class="dash-bar-row">
+      <div>${m.label}</div>
+      <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${Math.max(2, (m.total / maxMonth) * 100)}%"></div></div>
+      <div style="text-align:right">${dashMoney(m.total)} <span style="color:var(--muted)">(${m.count})</span></div>
+    </div>`).join('');
+
+  const customerMap = new Map();
+  rows.forEach(r => {
+    const key = dashCustomer(r.o);
+    const cur = customerMap.get(key) || { total:0, count:0 };
+    cur.total += r.total; cur.count += 1; customerMap.set(key, cur);
+  });
+  const top = Array.from(customerMap.entries()).sort((a,b) => b[1].total - a[1].total).slice(0, 8);
+  const topEl = document.getElementById('dashTopCustomers');
+  if (topEl) topEl.innerHTML = top.length ? top.map(([name, v]) => `
+    <div class="dash-list-row"><strong>${esc(name)}</strong><span>${dashMoney(v.total)} <small style="color:var(--muted)">(${v.count})</small></span></div>`).join('') : '<p class="empty-state">Nog geen offertes in deze selectie.</p>';
+
+  const recent = rows.slice().sort((a,b) => b.date - a.date).slice(0, 30);
+  const recentEl = document.getElementById('dashRecent');
+  if (recentEl) recentEl.innerHTML = recent.length ? `
+    <table class="dash-table"><thead><tr><th>Datum</th><th>Offerte</th><th>Klant</th><th class="num">Bedrag ex.</th></tr></thead><tbody>
+    ${recent.map(r => `<tr><td>${formatDateNL(r.o.data?.datum || r.o.updated_at)}</td><td>${esc(r.o.data?.nummer || r.o.name || '')}</td><td>${esc(dashCustomer(r.o))}</td><td class="num">${dashMoney(r.total)}</td></tr>`).join('')}
+    </tbody></table>` : '<p class="empty-state">Nog geen offertes in deze selectie.</p>';
 }
 
 // ═══════════════════════════════════════════════
