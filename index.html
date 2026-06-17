@@ -130,6 +130,7 @@ function duplicateOfferte() {
     if (data) {
       await loadOffertesList();
       currentOfferteId = data.id;
+      localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
       sv('offerteNummer', state.nummer);
       renderOfferteSelect();
       showToast('📋 Offerte gedupliceerd');
@@ -1888,14 +1889,21 @@ let allOffertes = [];
 let savedKlanten = [];
 let saveTimer = null;
 let isRegistering = false;
+const LAST_OFFERTE_ID_KEY = 'gr_last_offerte_id';
+let appShownForUserId = null;
 
 // Auth
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) { currentUser = session.user; showApp(); }
   sb.auth.onAuthStateChange((ev, session) => {
-    if (session) { currentUser = session.user; showApp(); }
-    else { currentUser = null; document.getElementById('authOverlay').style.display = 'flex'; }
+    if (session) {
+      const prevUserId = currentUser?.id || null;
+      currentUser = session.user;
+      // Token refresh / terugkomen naar tab mag niet opnieuw naar de nieuwste offerte springen.
+      if (ev === 'SIGNED_IN' || prevUserId !== session.user.id || appShownForUserId !== session.user.id) showApp();
+    }
+    else { currentUser = null; appShownForUserId = null; document.getElementById('authOverlay').style.display = 'flex'; }
   });
 }
 
@@ -1922,7 +1930,7 @@ async function doLogin() {
 async function doLogout() {
   await cloudSave();
   await sb.auth.signOut();
-  currentUser = null; currentOfferteId = null; allOffertes = [];
+  currentUser = null; currentOfferteId = null; allOffertes = []; appShownForUserId = null;
   document.getElementById('authOverlay').style.display = 'flex';
 }
 
@@ -1931,11 +1939,14 @@ async function showApp() {
   await loadOffertesList();
   syncBibFromCloud();
   if (allOffertes.length > 0) {
-    currentOfferteId = allOffertes[0].id;
+    const lastId = localStorage.getItem(LAST_OFFERTE_ID_KEY);
+    const preferredId = [currentOfferteId, lastId].find(id => id && allOffertes.some(o => o.id === id));
+    currentOfferteId = preferredId || allOffertes[0].id;
     await loadOfferteFromCloud(currentOfferteId);
   } else {
     await nieuweOfferteCloud();
   }
+  appShownForUserId = currentUser?.id || null;
   renderOfferteSelect();
 }
 
@@ -2000,6 +2011,7 @@ async function switchOfferte() {
   if (!selectedId) return;
   await cloudSave();
   currentOfferteId = selectedId;
+  localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
   await loadOfferteFromCloud(currentOfferteId);
 }
 
@@ -2007,6 +2019,7 @@ async function loadOfferteFromCloud(id) {
   const { data, error } = await sb.from('offertes').select('*').eq('id', id).single();
   if (error || !data) return;
   currentOfferteId = data.id;
+  localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
   resetOfferteFormState();
   const s = data.data || {};
   offerte = s.offerte || { regels: [] };
@@ -2109,6 +2122,7 @@ async function nieuweOfferteCloud() {
   if (error) { showToast('❌ Fout bij aanmaken'); return; }
   await loadOffertesList();
   currentOfferteId = data.id;
+  localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
   // Reset form
   offerte = { regels: [] }; nextId = 1;
   ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','opmerkingen'].forEach(id => sv(id, ''));
@@ -2129,6 +2143,7 @@ async function deleteOfferteCloud() {
   await loadOffertesList();
   if (allOffertes.length > 0) {
     currentOfferteId = allOffertes[0].id;
+    localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
     await loadOfferteFromCloud(currentOfferteId);
   } else {
     await nieuweOfferteCloud();
