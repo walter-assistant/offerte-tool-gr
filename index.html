@@ -101,6 +101,7 @@ function loadOfferteState(s) {
   sv('kortingPct', s.kortingPct || '0');
   sv('opmerkingen', s.opmerkingen || '');
   if (s.prijslijst) { const sel = document.getElementById('prijslijstSelect'); if(sel) sel.value = s.prijslijst; }
+  renderKlantSelect();
   filterArtikelen(); renderOfferte(); autoSave();
 }
 
@@ -2018,6 +2019,7 @@ async function loadOfferteFromCloud(id) {
   sv('offerteNummer', s.nummer || '');
   sv('kortingPct', s.kortingPct || '0');
   sv('opmerkingen', s.opmerkingen || '');
+  renderKlantSelect();
   // Load PvA data if present
   try { loadPvaState(s.pva || {}); } catch(e) {}
   // Load Werkbon data if present
