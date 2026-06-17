@@ -91,16 +91,25 @@ function parseOffertePdfText(text) {
 }
 
 function loadOfferteState(s) {
+  resetOfferteFormState();
   offerte = s.offerte || { regels: [] };
   nextId = s.nextId || 1;
-  if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
-  if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
-  if (s.datum) sv('offerteDatum', s.datum);
-  if (s.nummer) sv('offerteNummer', s.nummer);
-  if (s.kortingPct) sv('kortingPct', s.kortingPct);
-  if (s.opmerkingen) sv('opmerkingen', s.opmerkingen);
+  sv('klantBedrijf', s.klant?.bedrijf || ''); sv('klantContact', s.klant?.contact || ''); sv('klantAdres', s.klant?.adres || ''); sv('klantPostcode', s.klant?.postcode || ''); sv('klantPlaats', s.klant?.plaats || '');
+  sv('projectNaam', s.project?.naam || ''); sv('projectKenmerk', s.project?.kenmerk || ''); sv('projectLocatie', s.project?.locatie || '');
+  sv('offerteDatum', s.datum || '');
+  sv('offerteNummer', s.nummer || '');
+  sv('kortingPct', s.kortingPct || '0');
+  sv('opmerkingen', s.opmerkingen || '');
   if (s.prijslijst) { const sel = document.getElementById('prijslijstSelect'); if(sel) sel.value = s.prijslijst; }
   filterArtikelen(); renderOfferte(); autoSave();
+}
+
+function resetOfferteFormState() {
+  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','offerteDatum','offerteNummer','kortingPct','opmerkingen'].forEach(id => sv(id, id === 'kortingPct' ? '0' : ''));
+  const klantSelect = document.getElementById('klantSelect');
+  if (klantSelect) klantSelect.value = '';
+  resetPvaState();
+  resetWbState();
 }
 
 function nieuweOfferte() {
@@ -1997,22 +2006,22 @@ async function loadOfferteFromCloud(id) {
   const { data, error } = await sb.from('offertes').select('*').eq('id', id).single();
   if (error || !data) return;
   currentOfferteId = data.id;
+  resetOfferteFormState();
   const s = data.data || {};
   offerte = s.offerte || { regels: [] };
   nextId = s.nextId || 1;
-  if (s.prijslijst) document.getElementById('prijslijstSelect').value = s.prijslijst;
-  if (s.klant) { sv('klantBedrijf', s.klant.bedrijf); sv('klantContact', s.klant.contact); sv('klantAdres', s.klant.adres); sv('klantPostcode', s.klant.postcode); sv('klantPlaats', s.klant.plaats); }
-  else { ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats'].forEach(id => sv(id, '')); }
-  if (s.project) { sv('projectNaam', s.project.naam); sv('projectKenmerk', s.project.kenmerk); sv('projectLocatie', s.project.locatie); }
-  else { ['projectNaam','projectKenmerk','projectLocatie'].forEach(id => sv(id, '')); }
+  const prijsSel = document.getElementById('prijslijstSelect');
+  if (prijsSel && s.prijslijst) prijsSel.value = s.prijslijst;
+  sv('klantBedrijf', s.klant?.bedrijf || ''); sv('klantContact', s.klant?.contact || ''); sv('klantAdres', s.klant?.adres || ''); sv('klantPostcode', s.klant?.postcode || ''); sv('klantPlaats', s.klant?.plaats || '');
+  sv('projectNaam', s.project?.naam || ''); sv('projectKenmerk', s.project?.kenmerk || ''); sv('projectLocatie', s.project?.locatie || '');
   sv('offerteDatum', s.datum || new Date().toISOString().split('T')[0]);
   sv('offerteNummer', s.nummer || '');
   sv('kortingPct', s.kortingPct || '0');
   sv('opmerkingen', s.opmerkingen || '');
   // Load PvA data if present
-  if (s.pva) { try { loadPvaState(s.pva); } catch(e) {} }
+  try { loadPvaState(s.pva || {}); } catch(e) {}
   // Load Werkbon data if present
-  if (s.werkbon) { try { loadWbState(s.werkbon); } catch(e) {} }
+  try { loadWbState(s.werkbon || {}); } catch(e) {}
   filterArtikelen();
   renderOfferte();
   setSaveStatus('✅ Geladen');
@@ -2574,32 +2583,29 @@ function getPvaState() {
 }
 
 function loadPvaState(s) {
-  if (!s) return;
+  s = s || {};
   ['pvaKlant','pvaProjectnummer','pvaProjectleider','pvaTelefoon','pvaLocatie','pvaBevoegdGezag',
    'pvaDatumUitvoering','pvaDatumTransport','pvaDatumStart','pvaDatumEind',
    'pvaDoel','pvaBeschrijving','pvaAfdichting','pvaVeiligheidOpmerking','pvaLussen'].forEach(id => {
     const el = document.getElementById(id);
-    if (el && s[id] !== undefined) el.value = s[id];
+    if (el) el.value = s[id] || '';
   });
-  if (s.checks) {
-    document.querySelectorAll('[data-pva]').forEach(cb => {
-      const key = cb.getAttribute('data-pva');
-      if (s.checks[key] !== undefined) cb.checked = s.checks[key];
-    });
-  }
-  if (s.team) {
-    document.querySelectorAll('[data-pva-team]').forEach(cb => {
-      cb.checked = s.team.includes(cb.getAttribute('data-pva-team'));
-    });
-  }
+  document.querySelectorAll('[data-pva]').forEach(cb => {
+    const key = cb.getAttribute('data-pva');
+    cb.checked = !!(s.checks && s.checks[key]);
+  });
+  document.querySelectorAll('[data-pva-team]').forEach(cb => {
+    cb.checked = Array.isArray(s.team) && s.team.includes(cb.getAttribute('data-pva-team'));
+  });
   const ac = document.getElementById('pvaTeamAndersCheck');
   const an = document.getElementById('pvaTeamAnders');
   if (ac) ac.checked = s.teamAndersChecked || false;
   if (an) an.value = s.teamAnders || '';
+  const sigCanvas = document.getElementById('pvaSigCanvas');
+  if (sigCanvas) sigCanvas.getContext('2d').clearRect(0, 0, sigCanvas.width, sigCanvas.height);
   // Handtekening
   if (s.signature) {
     try {
-      const sigCanvas = document.getElementById('pvaSigCanvas');
       if (sigCanvas) {
         const img = new Image();
         img.onload = () => { sigCanvas.getContext('2d').drawImage(img, 0, 0); };
@@ -2607,14 +2613,19 @@ function loadPvaState(s) {
       }
     } catch(e) {}
   }
-  if (s.radios) {
-    Object.entries(s.radios).forEach(([name, val]) => {
-      if (val) {
-        const r = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
-        if (r) r.checked = true;
-      }
-    });
-  }
+  ['pvaScope','pvaWerkwater','pvaWerkstroom','pvaGrond','pvaBodemonderzoek','pvaCasing','pvaKlicDoor'].forEach(name => {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(r => r.checked = false);
+    const val = s.radios?.[name] || '';
+    if (val) {
+      const r = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
+      if (r) r.checked = true;
+    }
+  });
+}
+
+function resetPvaState() {
+  pvaState = {};
+  try { loadPvaState({}); } catch(e) {}
 }
 
 function pvaSave() {
@@ -2709,7 +2720,7 @@ function getWbState() {
 }
 
 function loadWbState(s) {
-  if (!s) return;
+  s = s || {};
   sv('wbBedrijf', s.bedrijf); sv('wbContact', s.contact); sv('wbProjectnrKlant', s.projectnrKlant);
   sv('wbKenmerk', s.kenmerk); sv('wbDatum', s.datum); sv('wbWerkzaamheden', s.werkzaamheden);
   sv('wbOfferteBedrag', s.offerteBedrag);
@@ -2721,6 +2732,15 @@ function loadWbState(s) {
   wbRenderMeerwerk();
   wbRenderBoringen();
   wbRecalc();
+}
+
+function resetWbState() {
+  ['wbBedrijf','wbContact','wbProjectnrKlant','wbKenmerk','wbDatum','wbWerkzaamheden','wbOfferteBedrag'].forEach(id => sv(id, ''));
+  wbSpecRegels = [];
+  wbMeerwerk = [];
+  wbBoringen = [];
+  wbNextId = 1;
+  try { wbRenderSpec(); wbRenderMeerwerk(); wbRenderBoringen(); wbRecalc(); } catch(e) {}
 }
 
 function wbSave() {
