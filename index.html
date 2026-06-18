@@ -846,6 +846,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div class="dash-card"><div class="dash-label">Aantal offertes</div><div class="dash-value" id="dashCount">0</div><div class="dash-sub">opgeslagen offertes</div></div>
       <div class="dash-card"><div class="dash-label">Gemiddelde waarde</div><div class="dash-value" id="dashAvg">€ 0</div><div class="dash-sub">per offerte</div></div>
       <div class="dash-card"><div class="dash-label">Hoogste offerte</div><div class="dash-value" id="dashMax">€ 0</div><div class="dash-sub" id="dashMaxName">—</div></div>
+      <div class="dash-card"><div class="dash-label">Opdracht geworden</div><div class="dash-value" id="dashWonCount">0</div><div class="dash-sub" id="dashWonRate">0% conversie</div></div>
+      <div class="dash-card"><div class="dash-label">Waarde opdrachten</div><div class="dash-value" id="dashWonValue">€ 0</div><div class="dash-sub">op basis van werkbonnen</div></div>
     </div>
   </div>
 
@@ -2479,6 +2481,11 @@ function dashOfferteTotal(o) {
 function dashCustomer(o) {
   return o?.data?.klant?.bedrijf || 'Onbekend';
 }
+function dashIsWon(o) {
+  const wb = o?.data?.werkbon || null;
+  if (!wb) return false;
+  return !!(wb.generatedAt || wb.kenmerk || parseDutchNumber(wb.offerteBedrag) > 0 || (Array.isArray(wb.specRegels) && wb.specRegels.length));
+}
 function dashName(o) {
   const d = o?.data || {};
   return [d.nummer, d.klant?.bedrijf, d.project?.naam || d.project?.locatie].filter(Boolean).join(' — ') || o?.name || 'Naamloze offerte';
@@ -2513,6 +2520,10 @@ function renderDashboard() {
   const total = rows.reduce((s, r) => s + r.total, 0);
   const count = rows.length;
   const avg = count ? total / count : 0;
+  const wonRows = rows.filter(r => dashIsWon(r.o));
+  const wonCount = wonRows.length;
+  const wonValue = wonRows.reduce((s, r) => s + r.total, 0);
+  const wonRate = count ? Math.round((wonCount / count) * 100) : 0;
   const maxRow = rows.slice().sort((a, b) => b.total - a.total)[0];
   const periodNames = { month:'deze maand', quarter:'dit kwartaal', half:'dit half jaar', year:'dit jaar', all:'alle jaren' };
   const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
@@ -2521,6 +2532,9 @@ function renderDashboard() {
   set('dashAvg', dashMoney(avg));
   set('dashMax', dashMoney(maxRow?.total || 0));
   set('dashMaxName', maxRow ? dashName(maxRow.o).slice(0, 46) : '—');
+  set('dashWonCount', String(wonCount));
+  set('dashWonRate', wonRate + '% conversie');
+  set('dashWonValue', dashMoney(wonValue));
   set('dashPeriodLabel', periodNames[period] || 'selectie');
 
   const year = Number(yearEl?.value || new Date().getFullYear());
@@ -2551,8 +2565,8 @@ function renderDashboard() {
   const recent = rows.slice().sort((a,b) => b.date - a.date).slice(0, 30);
   const recentEl = document.getElementById('dashRecent');
   if (recentEl) recentEl.innerHTML = recent.length ? `
-    <table class="dash-table"><thead><tr><th>Datum</th><th>Offerte</th><th>Klant</th><th class="num">Bedrag ex.</th></tr></thead><tbody>
-    ${recent.map(r => `<tr><td>${formatDateNL(r.o.data?.datum || r.o.updated_at)}</td><td>${esc(r.o.data?.nummer || r.o.name || '')}</td><td>${esc(dashCustomer(r.o))}</td><td class="num">${dashMoney(r.total)}</td></tr>`).join('')}
+    <table class="dash-table"><thead><tr><th>Datum</th><th>Offerte</th><th>Klant</th><th>Status</th><th class="num">Bedrag ex.</th></tr></thead><tbody>
+    ${recent.map(r => `<tr><td>${formatDateNL(r.o.data?.datum || r.o.updated_at)}</td><td>${esc(r.o.data?.nummer || r.o.name || '')}</td><td>${esc(dashCustomer(r.o))}</td><td>${dashIsWon(r.o) ? '✅ Opdracht' : 'Offerte'}</td><td class="num">${dashMoney(r.total)}</td></tr>`).join('')}
     </tbody></table>` : '<p class="empty-state">Nog geen offertes in deze selectie.</p>';
 }
 
@@ -2771,12 +2785,33 @@ async function wbSaveToCloud() {
   setSaveStatus('\ud83d\udcbe Opslaan...');
   const { data: row } = await sb.from('offertes').select('data').eq('id', currentOfferteId).single();
   const existingData = row?.data || {};
-  existingData.werkbon = getWbState();
+  const previousWerkbon = existingData.werkbon || {};
+  existingData.werkbon = Object.assign({}, previousWerkbon, getWbState());
   const { error } = await sb.from('offertes').update({
     data: existingData, updated_by: currentUser.id
   }).eq('id', currentOfferteId);
   if (error) { setSaveStatus('\u274c Werkbon opslaan mislukt'); console.error(error); }
   else { setSaveStatus('\u2705 Opgeslagen'); }
+}
+
+async function markWerkbonAsOpdracht() {
+  if (!currentOfferteId || !currentUser) return;
+  const { data: row } = await sb.from('offertes').select('data').eq('id', currentOfferteId).single();
+  const existingData = row?.data || {};
+  existingData.werkbon = Object.assign({}, existingData.werkbon || {}, getWbState(), {
+    generatedAt: new Date().toISOString(),
+    opdracht: true
+  });
+  const { error } = await sb.from('offertes').update({
+    data: existingData, updated_by: currentUser.id
+  }).eq('id', currentOfferteId);
+  if (!error) {
+    const local = (allOffertes || []).find(o => o.id === currentOfferteId);
+    if (local) local.data = existingData;
+    if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
+  } else {
+    console.error('Werkbon/opdracht markeren mislukt:', error);
+  }
 }
 
 async function wbLoadFromCloud() {
@@ -3080,7 +3115,8 @@ async function exportWerkbonPDF() {
 
   const naam = (gv('wbBedrijf') || 'werkbon').replace(/\s+/g, '_');
   doc.save('Werkbon_' + naam + '_' + (gv('wbKenmerk') || '') + '.pdf');
-  showToast('\ud83d\udcc4 Werkbon PDF ge\u00ebxporteerd');
+  await markWerkbonAsOpdracht();
+  showToast('\ud83d\udcc4 Werkbon PDF ge\u00ebxporteerd — offerte als opdracht gemarkeerd');
 }
 
 function fillPvaFromOfferte() {
