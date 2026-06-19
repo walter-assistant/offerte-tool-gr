@@ -50,6 +50,16 @@ function projectKey(name) {
   return normalizeName(String(name || '').split(/\s+-\s+/)[0] || name);
 }
 
+function folderForDocType(docType) {
+  const normalized = normalizeName(docType || 'Offerte');
+  if (/plan.*aanpak|pva/.test(normalized)) return 'Plan van aanpak';
+  if (/wko|interferentie/.test(normalized)) return 'WKO Tool';
+  if (/olo/.test(normalized)) return 'OLO';
+  if (/oplever/.test(normalized)) return 'Oplever rapportage';
+  if (/boorprofiel|boorstaat/.test(normalized)) return 'Boorprofiel';
+  return 'Offerte';
+}
+
 function normalizePath(path) {
   const clean = String(path || '')
     .replace(/\\/g, '/')
@@ -231,6 +241,7 @@ module.exports = async function handler(req, res) {
     const customerName = cleanPart(body.customerName, 'Onbekende klant');
     const projectFolderName = cleanPart(body.projectFolderName, 'Nieuw project');
     const filename = cleanPart(body.filename, 'Offerte.pdf').replace(/\.pdf$/i, '') + '.pdf';
+    const targetFolder = folderForDocType(body.docType);
 
     const token = await getAccessToken();
     const customer = await resolveCustomerFolder(token, customerName);
@@ -243,7 +254,7 @@ module.exports = async function handler(req, res) {
 
     let pdf = null;
     if (body.pdfBase64) {
-      const pdfPath = joinPath(projectPath, 'Offerte', filename);
+      const pdfPath = joinPath(projectPath, targetFolder, filename);
       pdf = await uploadPdf(token, pdfPath, body.pdfBase64);
     }
 
@@ -253,6 +264,7 @@ module.exports = async function handler(req, res) {
       project: project.name,
       path: projectPath,
       pdfPath: pdf?.path_display || null,
+      docFolder: targetFolder,
       versioned: pdf?.versioned || false,
       folders: STANDARD_FOLDERS
     });

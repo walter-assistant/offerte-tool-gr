@@ -1573,9 +1573,9 @@ function sanitizeDropboxPart(value, fallback) {
     .slice(0, 120) || fallback;
 }
 
-function getDropboxProjectFolderName() {
-  const nummer = sanitizeDropboxPart(gv('offerteNummer'), 'Zonder nummer');
-  const locatie = sanitizeDropboxPart(gv('projectLocatie') || gv('projectNaam'), 'Zonder locatie');
+function getDropboxProjectFolderName(nummerValue, locatieValue) {
+  const nummer = sanitizeDropboxPart(nummerValue || gv('offerteNummer'), 'Zonder nummer');
+  const locatie = sanitizeDropboxPart(locatieValue || gv('projectLocatie') || gv('projectNaam'), 'Zonder locatie');
   return nummer + ' - ' + locatie;
 }
 
@@ -1588,10 +1588,14 @@ function blobToBase64(blob) {
   });
 }
 
-async function savePdfToDropbox(pdfBlob, filename) {
-  const klant = sanitizeDropboxPart(gv('klantBedrijf'), 'Onbekende klant');
-  const projectFolder = getDropboxProjectFolderName();
-  if (!gv('klantBedrijf') || (!gv('projectLocatie') && !gv('projectNaam'))) {
+async function savePdfToDropbox(pdfBlob, filename, docType) {
+  const isPva = String(docType || '').toLowerCase().includes('plan');
+  const klantNaam = isPva ? (gv('pvaKlant') || gv('klantBedrijf')) : gv('klantBedrijf');
+  const projectNummer = isPva ? (gv('pvaProjectnummer') || gv('offerteNummer')) : gv('offerteNummer');
+  const projectLocatie = isPva ? (gv('pvaLocatie') || gv('projectLocatie') || gv('projectNaam')) : (gv('projectLocatie') || gv('projectNaam'));
+  const klant = sanitizeDropboxPart(klantNaam, 'Onbekende klant');
+  const projectFolder = getDropboxProjectFolderName(projectNummer, projectLocatie);
+  if (!klantNaam || !projectLocatie) {
     showToast('⚠️ Dropbox overgeslagen: vul klant en project/locatie in');
     return null;
   }
@@ -1608,7 +1612,8 @@ async function savePdfToDropbox(pdfBlob, filename) {
       customerName: klant,
       projectFolderName: projectFolder,
       filename: filename,
-      pdfBase64: pdfBase64
+      pdfBase64: pdfBase64,
+      docType: docType || 'Offerte'
     })
   });
   const data = await res.json().catch(function() { return {}; });
@@ -3299,8 +3304,17 @@ async function exportPvaPDF() {
   doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer  |  KvK: 37089931', M, 287);
 
   const naam = (gv('pvaKlant') || 'pva').replace(/\s+/g, '_');
-  doc.save('PvA_' + naam + '_' + (gv('pvaProjectnummer') || '') + '.pdf');
+  const filename = 'PvA_' + naam + '_' + (gv('pvaProjectnummer') || '') + '.pdf';
+  const pdfBlob = doc.output('blob');
+  doc.save(filename);
   showToast('\ud83d\udcc4 PvA PDF ge\u00ebxporteerd');
+
+  try {
+    await savePdfToDropbox(pdfBlob, filename, 'Plan van aanpak');
+  } catch (err) {
+    console.error('Dropbox fout PvA:', err);
+    showToast('⚠️ PvA lokaal klaar, Dropbox niet gelukt: ' + err.message);
+  }
 }
 
 </script>
