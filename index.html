@@ -3026,15 +3026,17 @@ async function exportWerkbonPDF() {
   doc.setDrawColor(200); doc.line(M, y - 1, M + CW, y - 1);
   doc.setFont('helvetica', 'normal');
   wbSpecRegels.forEach(r => {
-    if (y > 270) { doc.addPage(); y = 20; }
-    const omschr = r.omschrijving.length > 55 ? r.omschrijving.substring(0, 53) + '...' : r.omschrijving;
-    doc.text(omschr, M + 2, y);
+    const omschrijving = String(r.omschrijving || '');
+    const omschrLines = doc.splitTextToSize(omschrijving, 98);
+    const rowH = Math.max(6, omschrLines.length * 4 + 2);
+    if (y + rowH > 270) { doc.addPage(); y = 20; }
+    doc.text(omschrLines, M + 2, y);
     doc.text(r.eenheid || '', M + 105, y);
     doc.text(String(r.aantal), M + 130, y, { align: 'right' });
     doc.text('\u20ac ' + fmtDutch(r.prijs), M + 152, y, { align: 'right' });
     doc.text('\u20ac ' + fmtDutch(r.totaal), M + CW, y, { align: 'right' });
-    doc.setDrawColor(230); doc.line(M, y + 1.5, M + CW, y + 1.5);
-    y += 5;
+    doc.setDrawColor(230); doc.line(M, y + rowH - 1, M + CW, y + rowH - 1);
+    y += rowH;
   });
   y += 3;
 
