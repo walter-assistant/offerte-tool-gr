@@ -1676,7 +1676,14 @@ async function exportPDF() {
 
   y = Math.max(y, py) + 12;
 
-  const cols = [M, M+55, M+100, M+120, M+148, M+CW];
+  const cols = [M, M+100, M+123, M+143, M+165, M+CW];
+  const colW = {
+    omschrijving: cols[1] - cols[0] - 4,
+    eenheid: cols[2] - cols[1] - 4,
+    aantal: cols[3] - cols[2] - 4,
+    prijs: cols[4] - cols[3] - 4,
+    totaal: cols[5] - cols[4] - 2
+  };
   doc.setFillColor(90, 145, 56);
   doc.rect(M, y, CW, 7, 'F');
   doc.setTextColor(255);
@@ -1708,18 +1715,20 @@ async function exportPDF() {
     doc.setFont('helvetica', 'normal');
 
     cats[cat].forEach(r => {
-      if (y > 270) { doc.addPage(); y = 20; }
       const totaal = r.aantal * r.prijs;
       subtotaal += totaal;
-      const txt = r.omschrijving.length > 45 ? r.omschrijving.substring(0, 43) + '...' : r.omschrijving;
-      doc.text(txt, cols[0]+2, y);
-      doc.text(r.eenheid || '', cols[1]+2, y);
-      doc.text(String(r.aantal), cols[2]+2, y);
-      doc.text('€ ' + fmt(r.prijs), cols[3]+2, y);
-      doc.text('€ ' + fmt(totaal), cols[4]+2, y);
+      const omschrijving = String(r.omschrijving || '');
+      const omsLines = doc.splitTextToSize(omschrijving, colW.omschrijving);
+      const rowH = Math.max(5, omsLines.length * 4 + 1);
+      if (y + rowH > 270) { doc.addPage(); y = 20; }
+      doc.text(omsLines, cols[0]+2, y, { lineHeightFactor: 1.15 });
+      doc.text(String(r.eenheid || ''), cols[1]+2, y, { maxWidth: colW.eenheid });
+      doc.text(String(r.aantal), cols[2]+2, y, { maxWidth: colW.aantal });
+      doc.text('€ ' + fmt(r.prijs), cols[4]-2, y, { align: 'right' });
+      doc.text('€ ' + fmt(totaal), cols[5], y, { align: 'right' });
       doc.setDrawColor(220);
-      doc.line(M, y+1.5, M+CW, y+1.5);
-      y += 5;
+      doc.line(M, y + rowH - 1, M+CW, y + rowH - 1);
+      y += rowH;
     });
     y += 2;
   });
