@@ -1726,8 +1726,7 @@ async function exportPDF() {
       doc.text(String(r.aantal), cols[2]+2, y, { maxWidth: colW.aantal });
       doc.text('€ ' + fmt(r.prijs), cols[4]-2, y, { align: 'right' });
       doc.text('€ ' + fmt(totaal), cols[5], y, { align: 'right' });
-      doc.setDrawColor(220);
-      doc.line(M, y + rowH - 1, M+CW, y + rowH - 1);
+      // Geen grijze rijstrepen: rustiger beeld, vooral bij lange omschrijvingen.
       y += rowH;
     });
     y += 2;
@@ -1742,7 +1741,9 @@ async function exportPDF() {
   const totaal = naKorting + btw;
 
   doc.setDrawColor(90, 145, 56);
+  doc.setLineWidth(0.25);
   doc.line(130, y, M+CW, y);
+  doc.setLineWidth(0.2);
   y += 5;
   doc.setFontSize(9);
   doc.text('Subtotaal:', 132, y); doc.text('€ ' + fmt(subtotaal), M+CW, y, { align: 'right' }); y += 5;
