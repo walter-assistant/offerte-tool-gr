@@ -1975,10 +1975,17 @@ function showPasswordRecoveryForm() {
 async function requestPasswordReset() {
   const email = gv('authEmail');
   if (!email) { document.getElementById('authError').textContent = 'Vul eerst je e-mailadres in.'; return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href.split('#')[0] });
-  document.getElementById('authError').textContent = error
-    ? error.message
-    : 'Resetmail verzonden. Check je inbox/spam.';
+  const el = document.getElementById('authError');
+  el.textContent = 'Resetmail wordt verzonden...';
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href.split('#')[0] });
+    el.textContent = error
+      ? 'Reset mislukt: ' + error.message
+      : 'Resetmail verzonden. Check je inbox/spam.';
+  } catch (err) {
+    console.error('Password reset fout:', err);
+    el.textContent = 'Reset mislukt: geen verbinding met login-server.';
+  }
 }
 
 async function completePasswordReset() {
