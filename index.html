@@ -590,6 +590,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .auth-card button:hover { background: var(--primary-light); }
 .auth-card .auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
 .auth-card .auth-switch a { color: var(--primary); cursor: pointer; text-decoration: underline; }
+.auth-card .auth-link { text-align: center; margin-top: 10px; font-size: 13px; }
+.auth-card .auth-link a { color: var(--primary); cursor: pointer; text-decoration: underline; }
 .auth-card .auth-error { color: var(--danger); font-size: 12px; margin-top: 8px; text-align: center; }
 
 /* OFFERTE SELECTOR */
@@ -654,6 +656,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div class="form-group"><label>Wachtwoord</label><input type="password" id="authPassword" placeholder="••••••••" minlength="6"></div>
       <button onclick="doLogin()" id="authBtn">Inloggen</button>
       <div class="auth-switch">Nog geen account? <a onclick="toggleAuth()">Registreren</a></div>
+      <div class="auth-link" id="forgotPasswordLink"><a onclick="requestPasswordReset()">Wachtwoord vergeten?</a></div>
       <div class="auth-error" id="authError"></div>
     </div>
   </div>
@@ -1906,6 +1909,7 @@ let allOffertes = [];
 let savedKlanten = [];
 let saveTimer = null;
 let isRegistering = false;
+let isRecoveringPassword = false;
 const LAST_OFFERTE_ID_KEY = 'gr_last_offerte_id';
 let appShownForUserId = null;
 
@@ -1917,6 +1921,10 @@ async function initAuth() {
     if (session) {
       const prevUserId = currentUser?.id || null;
       currentUser = session.user;
+      if (ev === 'PASSWORD_RECOVERY') {
+        showPasswordRecoveryForm();
+        return;
+      }
       // Token refresh / terugkomen naar tab mag niet opnieuw naar de nieuwste offerte springen.
       if (ev === 'SIGNED_IN' || prevUserId !== session.user.id || appShownForUserId !== session.user.id) showApp();
     }
@@ -1925,12 +1933,64 @@ async function initAuth() {
 }
 
 function toggleAuth() {
+  if (isRecoveringPassword) resetAuthForm();
   isRegistering = !isRegistering;
   document.getElementById('authBtn').textContent = isRegistering ? 'Account aanmaken' : 'Inloggen';
   document.querySelector('.auth-switch').innerHTML = isRegistering
     ? 'Al een account? <a onclick="toggleAuth()">Inloggen</a>'
     : 'Nog geen account? <a onclick="toggleAuth()">Registreren</a>';
+  document.getElementById('forgotPasswordLink').style.display = isRegistering ? 'none' : 'block';
   document.getElementById('authError').textContent = '';
+}
+
+function resetAuthForm() {
+  isRecoveringPassword = false;
+  isRegistering = false;
+  document.querySelector('.auth-card h2').textContent = '⛏️ Offerte Tool';
+  document.getElementById('authEmail').closest('.form-group').style.display = '';
+  document.getElementById('authPassword').previousElementSibling.textContent = 'Wachtwoord';
+  document.getElementById('authPassword').placeholder = '••••••••';
+  document.getElementById('authBtn').textContent = 'Inloggen';
+  document.getElementById('authBtn').onclick = doLogin;
+  document.querySelector('.auth-switch').innerHTML = 'Nog geen account? <a onclick="toggleAuth()">Registreren</a>';
+  document.getElementById('forgotPasswordLink').style.display = 'block';
+  document.getElementById('authError').textContent = '';
+}
+
+function showPasswordRecoveryForm() {
+  isRecoveringPassword = true;
+  document.getElementById('authOverlay').style.display = 'flex';
+  document.querySelector('.auth-card h2').textContent = 'Nieuw wachtwoord';
+  document.getElementById('authEmail').closest('.form-group').style.display = 'none';
+  document.getElementById('authPassword').previousElementSibling.textContent = 'Nieuw wachtwoord';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authPassword').placeholder = 'minimaal 6 tekens';
+  document.getElementById('authBtn').textContent = 'Wachtwoord opslaan';
+  document.getElementById('authBtn').onclick = completePasswordReset;
+  document.querySelector('.auth-switch').innerHTML = '';
+  document.getElementById('forgotPasswordLink').style.display = 'none';
+  document.getElementById('authError').textContent = 'Vul hieronder je nieuwe wachtwoord in.';
+}
+
+async function requestPasswordReset() {
+  const email = gv('authEmail');
+  if (!email) { document.getElementById('authError').textContent = 'Vul eerst je e-mailadres in.'; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href.split('#')[0] });
+  document.getElementById('authError').textContent = error
+    ? error.message
+    : 'Resetmail verzonden. Check je inbox/spam.';
+}
+
+async function completePasswordReset() {
+  const pw = gv('authPassword');
+  if (!pw || pw.length < 6) { document.getElementById('authError').textContent = 'Gebruik minimaal 6 tekens.'; return; }
+  document.getElementById('authBtn').disabled = true;
+  const { error } = await sb.auth.updateUser({ password: pw });
+  document.getElementById('authBtn').disabled = false;
+  if (error) { document.getElementById('authError').textContent = error.message; return; }
+  showToast('Wachtwoord opgeslagen');
+  resetAuthForm();
+  showApp();
 }
 
 async function doLogin() {
