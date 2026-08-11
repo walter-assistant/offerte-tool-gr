@@ -1995,16 +1995,18 @@ async function requestMagicLink() {
   const el = document.getElementById('authError');
   el.textContent = 'Inloglink wordt verzonden...';
   try {
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+    const res = await fetch('/api/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, redirectTo: window.location.href.split('#')[0].split('?')[0] })
     });
-    el.textContent = error
-      ? 'Inloglink mislukt: ' + error.message
-      : 'Inloglink verzonden. Open de mail op dit apparaat.';
+    const data = await res.json().catch(() => ({}));
+    el.textContent = res.ok
+      ? 'Inloglink verzonden. Open de mail op dit apparaat.'
+      : 'Inloglink mislukt: ' + (data.error || 'probeer opnieuw.');
   } catch (err) {
     console.error('Magic link fout:', err);
-    el.textContent = 'Inloglink mislukt: geen verbinding met login-server.';
+    el.textContent = 'Inloglink mislukt: geen verbinding met de Offerte Tool-server.';
   }
 }
 
