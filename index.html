@@ -1979,13 +1979,18 @@ async function requestPasswordReset() {
   const el = document.getElementById('authError');
   el.textContent = 'Resetmail wordt verzonden...';
   try {
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href.split('#')[0] });
-    el.textContent = error
-      ? 'Reset mislukt: ' + error.message
-      : 'Resetmail verzonden. Check je inbox/spam.';
+    const res = await fetch('/api/password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, redirectTo: window.location.href.split('#')[0].split('?')[0] })
+    });
+    const data = await res.json().catch(() => ({}));
+    el.textContent = res.ok
+      ? 'Resetmail verzonden. Check je inbox/spam.'
+      : 'Reset mislukt: ' + (data.error || 'probeer opnieuw.');
   } catch (err) {
     console.error('Password reset fout:', err);
-    el.textContent = 'Reset mislukt: geen verbinding met login-server.';
+    el.textContent = 'Reset mislukt: geen verbinding met de Offerte Tool-server.';
   }
 }
 

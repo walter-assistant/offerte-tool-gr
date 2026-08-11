@@ -31,6 +31,16 @@ async function supabaseAuth(path, payload) {
   return { ok: authRes.ok, status: authRes.status, data };
 }
 
+function authError(data) {
+  const raw = data.error_description || data.msg || data.message || data.error || data.code || 'Login mislukt.';
+  const text = String(raw);
+  if (/invalid login credentials/i.test(text)) return 'E-mailadres of wachtwoord klopt niet.';
+  if (/email not confirmed/i.test(text)) return 'E-mailadres is nog niet bevestigd. Check je mail.';
+  if (/too many|rate limit/i.test(text)) return 'Te veel pogingen. Probeer later opnieuw of gebruik Inloglink mailen.';
+  if (/signup.*disabled/i.test(text)) return 'Account aanmaken staat uit. Gebruik Inloggen of Inloglink mailen.';
+  return text;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -52,9 +62,7 @@ export default async function handler(req, res) {
       : await supabaseAuth('/auth/v1/token?grant_type=password', { email, password });
 
     if (!result.ok) {
-      return sendJson(res, result.status, {
-        error: result.data.error_description || result.data.msg || result.data.message || 'Inloggen mislukt.'
-      });
+      return sendJson(res, result.status, { error: authError(result.data), details: result.data });
     }
 
     return sendJson(res, 200, result.data);
