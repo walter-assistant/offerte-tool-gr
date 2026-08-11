@@ -2025,12 +2025,38 @@ async function completePasswordReset() {
 async function doLogin() {
   const email = gv('authEmail'), pw = gv('authPassword');
   if (!email || !pw) return;
-  document.getElementById('authBtn').disabled = true;
-  const { error } = isRegistering
-    ? await sb.auth.signUp({ email, password: pw })
-    : await sb.auth.signInWithPassword({ email, password: pw });
-  document.getElementById('authBtn').disabled = false;
-  if (error) document.getElementById('authError').textContent = error.message;
+  const btn = document.getElementById('authBtn');
+  const errEl = document.getElementById('authError');
+  btn.disabled = true;
+  errEl.textContent = isRegistering ? 'Account wordt aangemaakt...' : 'Bezig met inloggen...';
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: isRegistering ? 'signup' : 'login', email, password: pw })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Login mislukt.';
+      return;
+    }
+    const session = data.session || data;
+    if (session.access_token && session.refresh_token) {
+      const { error } = await sb.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      if (error) { errEl.textContent = error.message; return; }
+      errEl.textContent = '';
+      showApp();
+    } else {
+      errEl.textContent = isRegistering
+        ? 'Account aangemaakt. Check eventueel je mail en log daarna in.'
+        : 'Login gelukt, maar sessie kon niet worden opgeslagen.';
+    }
+  } catch (err) {
+    console.error('Login proxy fout:', err);
+    errEl.textContent = 'Failed to fetch';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function doLogout() {
