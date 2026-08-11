@@ -657,6 +657,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <button onclick="doLogin()" id="authBtn">Inloggen</button>
       <div class="auth-switch">Nog geen account? <a onclick="toggleAuth()">Registreren</a></div>
       <div class="auth-link" id="forgotPasswordLink"><a onclick="requestPasswordReset()">Wachtwoord vergeten?</a> · <a onclick="requestMagicLink()">Inloglink mailen</a></div>
+      <div class="auth-link"><a onclick="useOfflineMode()">Zonder cloud openen</a></div>
       <div class="auth-error" id="authError"></div>
     </div>
   </div>
@@ -1910,6 +1911,7 @@ let savedKlanten = [];
 let saveTimer = null;
 let isRegistering = false;
 let isRecoveringPassword = false;
+let offlineMode = false;
 const LAST_OFFERTE_ID_KEY = 'gr_last_offerte_id';
 let appShownForUserId = null;
 
@@ -2027,6 +2029,36 @@ async function completePasswordReset() {
   showApp();
 }
 
+function resetForNieuweOfferte(nummer) {
+  resetOfferteFormState();
+  offerte = { regels: [] }; nextId = 1;
+  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','opmerkingen'].forEach(id => sv(id, ''));
+  sv('offerteNummer', nummer || '');
+  sv('kortingPct', '0');
+  document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
+  try { resetPvaState(); } catch(e) {}
+  try { resetWbState(); } catch(e) {}
+  filterArtikelen();
+  renderOfferte();
+}
+
+async function useOfflineMode() {
+  offlineMode = true;
+  currentUser = null;
+  currentOfferteId = 'offline';
+  allOffertes = [{ id: 'offline', name: 'Lokale offerte', data: {} }];
+  document.getElementById('authOverlay').style.display = 'none';
+  loadState();
+  if (!gv('offerteDatum')) sv('offerteDatum', new Date().toISOString().split('T')[0]);
+  if (!gv('offerteNummer')) sv('offerteNummer', 'GR-' + new Date().getFullYear() + '-001');
+  renderKlantSelect();
+  renderOfferteSelect();
+  filterArtikelen();
+  renderOfferte();
+  setSaveStatus('📱 Offline lokaal opgeslagen');
+  showToast('Offerte Tool geopend zonder cloud');
+}
+
 async function doLogin() {
   const email = gv('authEmail'), pw = gv('authPassword');
   if (!email || !pw) return;
@@ -2042,7 +2074,7 @@ async function doLogin() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      errEl.textContent = data.error || 'Login mislukt.';
+      errEl.textContent = (data.error || 'Login mislukt.') + ' Gebruik eventueel: Zonder cloud openen.';
       return;
     }
     const session = data.session || data;
@@ -2072,6 +2104,7 @@ async function doLogout() {
 }
 
 async function showApp() {
+  if (offlineMode || !currentUser) return useOfflineMode();
   document.getElementById('authOverlay').style.display = 'none';
   await loadOffertesList();
   syncBibFromCloud();
@@ -2144,6 +2177,7 @@ async function handleOfferteSearch() {
 }
 
 async function switchOfferte() {
+  if (offlineMode) return;
   const selectedId = document.getElementById('offerteSelect').value;
   if (!selectedId) return;
   await cloudSave();
@@ -2195,6 +2229,7 @@ function getOfferteState() {
 }
 
 async function cloudSave() {
+  if (offlineMode) { localStorage.setItem('gr_offerte', JSON.stringify(getOfferteState())); setSaveStatus('📱 Offline lokaal opgeslagen'); return; }
   if (!currentOfferteId || !currentUser) return;
   setSaveStatus('💾 Opslaan...');
   const state = getOfferteState();
@@ -2231,6 +2266,7 @@ function setSaveStatus(text) {
 async function generateNextOfferteNummer() {
   // Fetch all offerte names + data to find highest GR-YYYY-NNN
   const year = new Date().getFullYear();
+  if (offlineMode) return 'GR-' + year + '-001';
   const { data } = await sb.from('offertes').select('name, data');
   let max = 0;
   const re = new RegExp('GR-' + year + '-(\\d{3,})', 'i');
@@ -2248,6 +2284,17 @@ async function generateNextOfferteNummer() {
 async function nieuweOfferteCloud() {
   await cloudSave();
   const search = document.getElementById('offerteSearch');
+  if (offlineMode) {
+    if (search) search.value = '';
+    const nieuwNummer = await generateNextOfferteNummer();
+    currentOfferteId = 'offline';
+    allOffertes = [{ id: 'offline', name: 'Lokale offerte', data: {} }];
+    resetForNieuweOfferte(nieuwNummer);
+    renderOfferteSelect();
+    await cloudSave();
+    showToast('✅ Nieuwe lokale offerte: ' + nieuwNummer);
+    return;
+  }
   if (search) search.value = '';
   const nieuwNummer = await generateNextOfferteNummer();
   const { data, error } = await sb.from('offertes').insert({
@@ -2261,14 +2308,8 @@ async function nieuweOfferteCloud() {
   currentOfferteId = data.id;
   localStorage.setItem(LAST_OFFERTE_ID_KEY, currentOfferteId);
   // Reset form
-  offerte = { regels: [] }; nextId = 1;
-  ['klantBedrijf','klantContact','klantAdres','klantPostcode','klantPlaats','projectNaam','projectKenmerk','projectLocatie','opmerkingen'].forEach(id => sv(id, ''));
-  sv('offerteNummer', nieuwNummer);
-  sv('kortingPct', '0');
-  document.getElementById('offerteDatum').value = new Date().toISOString().split('T')[0];
+  resetForNieuweOfferte(nieuwNummer);
   renderOfferteSelect();
-  filterArtikelen();
-  renderOfferte();
   await cloudSave();
   showToast('✅ Nieuwe offerte: ' + nieuwNummer);
 }
@@ -2276,6 +2317,7 @@ async function nieuweOfferteCloud() {
 async function deleteOfferteCloud() {
   if (!currentOfferteId) return;
   if (!confirm('Weet je zeker dat je deze offerte wilt verwijderen?')) return;
+  if (offlineMode) { await nieuweOfferteCloud(); return; }
   await sb.from('offertes').delete().eq('id', currentOfferteId);
   await loadOffertesList();
   if (allOffertes.length > 0) {
@@ -2290,6 +2332,7 @@ async function deleteOfferteCloud() {
 }
 
 async function renameOfferte() {
+  if (offlineMode) { showToast('Naam wijzigen is uitgeschakeld in offline modus'); return; }
   const name = prompt('Nieuwe naam voor deze offerte:', document.getElementById('offerteSelect').selectedOptions[0]?.text);
   if (!name) return;
   await sb.from('offertes').update({ name }).eq('id', currentOfferteId);
