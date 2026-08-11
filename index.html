@@ -656,7 +656,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div class="form-group"><label>Wachtwoord</label><input type="password" id="authPassword" placeholder="••••••••" minlength="6"></div>
       <button onclick="doLogin()" id="authBtn">Inloggen</button>
       <div class="auth-switch">Nog geen account? <a onclick="toggleAuth()">Registreren</a></div>
-      <div class="auth-link" id="forgotPasswordLink"><a onclick="requestPasswordReset()">Wachtwoord vergeten?</a></div>
+      <div class="auth-link" id="forgotPasswordLink"><a onclick="requestPasswordReset()">Wachtwoord vergeten?</a> · <a onclick="requestMagicLink()">Inloglink mailen</a></div>
       <div class="auth-error" id="authError"></div>
     </div>
   </div>
@@ -1953,6 +1953,7 @@ function resetAuthForm() {
   document.getElementById('authBtn').textContent = 'Inloggen';
   document.getElementById('authBtn').onclick = doLogin;
   document.querySelector('.auth-switch').innerHTML = 'Nog geen account? <a onclick="toggleAuth()">Registreren</a>';
+  document.getElementById('forgotPasswordLink').innerHTML = '<a onclick="requestPasswordReset()">Wachtwoord vergeten?</a> · <a onclick="requestMagicLink()">Inloglink mailen</a>';
   document.getElementById('forgotPasswordLink').style.display = 'block';
   document.getElementById('authError').textContent = '';
 }
@@ -1985,6 +1986,25 @@ async function requestPasswordReset() {
   } catch (err) {
     console.error('Password reset fout:', err);
     el.textContent = 'Reset mislukt: geen verbinding met login-server.';
+  }
+}
+
+async function requestMagicLink() {
+  const email = gv('authEmail');
+  if (!email) { document.getElementById('authError').textContent = 'Vul eerst je e-mailadres in.'; return; }
+  const el = document.getElementById('authError');
+  el.textContent = 'Inloglink wordt verzonden...';
+  try {
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+    });
+    el.textContent = error
+      ? 'Inloglink mislukt: ' + error.message
+      : 'Inloglink verzonden. Open de mail op dit apparaat.';
+  } catch (err) {
+    console.error('Magic link fout:', err);
+    el.textContent = 'Inloglink mislukt: geen verbinding met login-server.';
   }
 }
 
