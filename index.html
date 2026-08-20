@@ -687,6 +687,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   <span class="offerte-search-count" id="offerteSearchCount"></span>
   <button class="btn-sm" onclick="nieuweOfferteCloud()">+ Nieuw</button>
   <button class="btn-sm" onclick="renameOfferte()">✏️ Hernoem</button>
+  <select id="brl2100Day" class="btn-sm" title="Uitvoerdag BRL2100" style="min-width:120px">
+    <option value="">Kies werkdag</option><option>Maandag</option><option>Dinsdag</option><option>Woensdag</option>
+    <option>Donderdag</option><option>Vrijdag</option><option>Zaterdag</option><option>Zondag</option>
+  </select>
+  <button class="btn-sm" style="color:#2f6f23;font-weight:700" onclick="convertToBrl2100()">✓ Omzetten naar opdracht</button>
   <button class="btn-sm" style="color:var(--danger)" onclick="deleteOfferteCloud()">🗑️ Verwijder</button>
   <span class="save-status" id="saveStatus">✅ Opgeslagen</span>
 </div>
@@ -1624,6 +1629,25 @@ async function savePdfToDropbox(pdfBlob, filename, docType) {
   if (!res.ok || !data.ok) throw new Error(data.error || 'Dropbox upload mislukt');
   showToast('✅ Dropbox-map klaar + PDF opgeslagen');
   return data;
+}
+
+async function convertToBrl2100() {
+  const day = gv('brl2100Day');
+  const customerName = gv('klantBedrijf');
+  const locationName = gv('projectLocatie') || gv('projectNaam');
+  if (!day) return showToast('⚠️ Kies eerst maandag t/m zondag');
+  if (!customerName || !locationName) return showToast('⚠️ Vul klant en project/locatie in');
+  if (!confirm('De complete projectmap kopiëren naar Projecten met BRL2100 / ' + day + '?')) return;
+  showToast('⏳ Projectmap wordt naar ' + day + ' gekopieerd...');
+  const apiUrl = location.hostname.endsWith('github.io') ? 'https://offerte-gr.vercel.app/api/dropbox-brl2100' : '/api/dropbox-brl2100';
+  try {
+    const res = await fetch(apiUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
+      day: day, customerName: sanitizeDropboxPart(customerName, 'Onbekende klant'), projectFolderName: getDropboxProjectFolderName(gv('offerteNummer'), locationName)
+    }) });
+    const data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Omzetten mislukt');
+    showToast('✅ Opdracht staat bij BRL2100 / ' + day);
+  } catch (err) { console.error('BRL2100 fout:', err); showToast('❌ ' + err.message); }
 }
 
 // ═══════════════════════════════════════════════

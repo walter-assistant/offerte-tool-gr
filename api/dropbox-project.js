@@ -1,6 +1,7 @@
 const DROPBOX_API = 'https://api.dropboxapi.com/2';
 const DROPBOX_CONTENT = 'https://content.dropboxapi.com/2';
 const BASE_PATH = process.env.DROPBOX_OFFERTE_BASE_PATH || '/werkmap/Offerte map';
+const BRL2100_LINK_FILE = '.brl2100-koppeling.json';
 const STANDARD_FOLDERS = [
   'Bodemonderzoek',
   'Bodemopbouw dino',
@@ -229,6 +230,20 @@ async function uploadPdf(token, filePath, base64) {
   return { ...data, requested_path: normalizePath(filePath), versioned: finalPath !== normalizePath(filePath) };
 }
 
+async function readBrl2100Link(token, projectPath) {
+  const linkPath = joinPath(projectPath, BRL2100_LINK_FILE);
+  if (!(await getMetadata(token, linkPath))) return null;
+  const res = await fetch(`${DROPBOX_CONTENT}/files/download`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Dropbox-API-Arg': JSON.stringify({ path: linkPath }) }
+  });
+  if (!res.ok) return null;
+  try {
+    const value = JSON.parse(await res.text());
+    return value?.type === 'brl2100-mirror' && value.destinationPath ? value : null;
+  } catch (_) { return null; }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -253,9 +268,15 @@ module.exports = async function handler(req, res) {
     }
 
     let pdf = null;
+    let mirrorPdf = null;
     if (body.pdfBase64) {
       const pdfPath = joinPath(projectPath, targetFolder, filename);
       pdf = await uploadPdf(token, pdfPath, body.pdfBase64);
+      const link = await readBrl2100Link(token, projectPath);
+      if (link) {
+        await createFolder(token, joinPath(link.destinationPath, targetFolder));
+        mirrorPdf = await uploadPdf(token, joinPath(link.destinationPath, targetFolder, filename), body.pdfBase64);
+      }
     }
 
     return res.status(200).json({
@@ -264,6 +285,7 @@ module.exports = async function handler(req, res) {
       project: project.name,
       path: projectPath,
       pdfPath: pdf?.path_display || null,
+      mirrorPdfPath: mirrorPdf?.path_display || null,
       docFolder: targetFolder,
       versioned: pdf?.versioned || false,
       folders: STANDARD_FOLDERS
