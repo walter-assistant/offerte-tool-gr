@@ -9,6 +9,10 @@
     "api/dropbox-brl2100.js": {
       "regions": ["fra1"]
     },
+    "api/dropbox-sync.js": {
+      "regions": ["fra1"],
+      "maxDuration": 60
+    },
     "api/ai-aanvraag.js": {
       "regions": ["fra1"]
     }

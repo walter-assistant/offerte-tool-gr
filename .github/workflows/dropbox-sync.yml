@@ -1,0 +1,32 @@
+name: Dropbox BRL2100 sync
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: dropbox-brl2100-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Synchroniseer gekoppelde projectmappen
+        env:
+          SYNC_SECRET: ${{ secrets.DROPBOX_SYNC_SECRET }}
+        run: |
+          response_file="$(mktemp)"
+          status=$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Bearer ${SYNC_SECRET}" \
+            --max-time 240 \
+            https://offerte-gr.vercel.app/api/dropbox-sync)
+          cat "$response_file"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Dropbox-sync gaf HTTP $status" >&2
+            exit 1
+          fi
