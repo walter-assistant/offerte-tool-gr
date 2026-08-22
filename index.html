@@ -2252,6 +2252,28 @@ function getOfferteState() {
   return state;
 }
 
+async function ensureDropboxProjectFolder() {
+  const klantNaam = gv('klantBedrijf');
+  const projectLocatie = gv('projectLocatie') || gv('projectNaam');
+  if (!klantNaam || !projectLocatie) return null;
+  const klant = sanitizeDropboxPart(klantNaam, 'Onbekende klant');
+  const projectFolder = getDropboxProjectFolderName(gv('offerteNummer'), projectLocatie);
+  const cacheKey = 'gr-dropbox-folder:' + klant.toLowerCase() + '/' + projectFolder.toLowerCase();
+  if (localStorage.getItem(cacheKey) === 'ready') return { cached: true };
+  const apiUrl = location.hostname.endsWith('github.io')
+    ? 'https://offerte-gr.vercel.app/api/dropbox-project'
+    : '/api/dropbox-project';
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ customerName: klant, projectFolderName: projectFolder })
+  });
+  const data = await res.json().catch(function() { return {}; });
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Dropbox-map aanmaken mislukt');
+  localStorage.setItem(cacheKey, 'ready');
+  return data;
+}
+
 async function cloudSave() {
   if (offlineMode) { localStorage.setItem('gr_offerte', JSON.stringify(getOfferteState())); setSaveStatus('📱 Offline lokaal opgeslagen'); return; }
   if (!currentOfferteId || !currentUser) return;
@@ -2270,6 +2292,13 @@ async function cloudSave() {
     renderKlantSelect();
     if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
     setSaveStatus('✅ Opgeslagen');
+    try {
+      const dropbox = await ensureDropboxProjectFolder();
+      if (dropbox) setSaveStatus('✅ Opgeslagen + Dropbox-map klaar');
+    } catch (err) {
+      console.error('Dropbox-map bij opslaan:', err);
+      setSaveStatus('⚠️ Opgeslagen, Dropbox-map mislukt');
+    }
   }
 }
 
