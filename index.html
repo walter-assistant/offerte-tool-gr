@@ -1599,9 +1599,22 @@ function blobToBase64(blob) {
 
 async function savePdfToDropbox(pdfBlob, filename, docType) {
   const isPva = String(docType || '').toLowerCase().includes('plan');
-  const klantNaam = isPva ? (gv('pvaKlant') || gv('klantBedrijf')) : gv('klantBedrijf');
-  const projectNummer = isPva ? (gv('pvaProjectnummer') || gv('offerteNummer')) : gv('offerteNummer');
-  const projectLocatie = isPva ? (gv('pvaLocatie') || gv('projectLocatie') || gv('projectNaam')) : (gv('projectLocatie') || gv('projectNaam'));
+  const isWerkbon = /werkbon|pre.?factuur/.test(String(docType || '').toLowerCase());
+  const klantNaam = isPva
+    ? (gv('pvaKlant') || gv('klantBedrijf'))
+    : isWerkbon
+      ? (gv('wbBedrijf') || gv('klantBedrijf'))
+      : gv('klantBedrijf');
+  const projectNummer = isPva
+    ? (gv('pvaProjectnummer') || gv('offerteNummer'))
+    : isWerkbon
+      ? (gv('wbKenmerk') || gv('offerteNummer'))
+      : gv('offerteNummer');
+  const projectLocatie = isPva
+    ? (gv('pvaLocatie') || gv('projectLocatie') || gv('projectNaam'))
+    : isWerkbon
+      ? (gv('projectLocatie') || gv('projectNaam') || gv('wbProjectnrKlant'))
+      : (gv('projectLocatie') || gv('projectNaam'));
   const klant = sanitizeDropboxPart(klantNaam, 'Onbekende klant');
   const projectFolder = getDropboxProjectFolderName(projectNummer, projectLocatie);
   if (!klantNaam || !projectLocatie) {
@@ -3347,9 +3360,17 @@ async function exportWerkbonPDF() {
   doc.text('Ground Research BV  |  Vrijheidweg 45, 1521 RP Wormerveer  |  KvK: 37089931  |  BTW: NL808849840B01', M, 287);
 
   const naam = (gv('wbBedrijf') || 'werkbon').replace(/\s+/g, '_');
-  doc.save('Werkbon_' + naam + '_' + (gv('wbKenmerk') || '') + '.pdf');
+  const filename = 'Werkbon_' + naam + '_' + (gv('wbKenmerk') || '') + '.pdf';
+  const pdfBlob = doc.output('blob');
+  doc.save(filename);
   await markWerkbonAsOpdracht();
-  showToast('\ud83d\udcc4 Werkbon PDF ge\u00ebxporteerd — offerte als opdracht gemarkeerd');
+  try {
+    await savePdfToDropbox(pdfBlob, filename, 'Werkbon');
+    showToast('\u2705 Werkbon opgeslagen in Dropbox en offerte als opdracht gemarkeerd');
+  } catch (err) {
+    console.error('Werkbon Dropbox-upload mislukt:', err);
+    showToast('\u26a0\ufe0f Werkbon lokaal opgeslagen, Dropbox-upload mislukt: ' + err.message);
+  }
 }
 
 function fillPvaFromOfferte() {
