@@ -19,6 +19,7 @@ const STANDARD_FOLDERS = [
   'Plan van aanpak',
   'SPF verklaring',
   'Tekening',
+  'Werkbon',
   'Werkbeschrijving 2100',
   'WKO Tool'
 ];
@@ -53,6 +54,7 @@ function projectKey(name) {
 
 function folderForDocType(docType) {
   const normalized = normalizeName(docType || 'Offerte');
+  if (/werkbon|pre factuur/.test(normalized)) return 'Werkbon';
   if (/plan.*aanpak|pva/.test(normalized)) return 'Plan van aanpak';
   if (/wko|interferentie/.test(normalized)) return 'WKO Tool';
   if (/olo/.test(normalized)) return 'OLO';
