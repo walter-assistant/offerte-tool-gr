@@ -7,21 +7,15 @@ const STANDARD_FOLDERS = [
   'Bodemopbouw dino',
   'Boorprofiel',
   'dag rapport',
-  'EED',
   "Foto's",
-  'ITge',
   'Klic',
   'Mail',
   'Offerte',
-  'OLO',
   'Ontwerp',
-  'Oplever rapportage',
   'Plan van aanpak',
-  'SPF verklaring',
   'Tekening',
   'Werkbon',
-  'Werkbeschrijving 2100',
-  'WKO Tool'
+  'Werkbeschrijving 2100'
 ];
 
 function required(name) {
