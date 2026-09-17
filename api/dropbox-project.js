@@ -14,6 +14,7 @@ const STANDARD_FOLDERS = [
   'Ontwerp',
   'Plan van aanpak',
   'Tekening',
+  'Veldwerk gegevens aangeleverd door klant',
   'Werkbon',
   'Werkbeschrijving 2100'
 ];
