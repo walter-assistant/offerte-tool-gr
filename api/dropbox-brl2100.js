@@ -4,6 +4,7 @@ const OFFERTE_BASE = process.env.DROPBOX_OFFERTE_BASE_PATH || '/werkmap/Offerte 
 const BRL2100_BASE = process.env.DROPBOX_BRL2100_BASE_PATH || '/Projecten met BRL2100';
 const LINK_FILE = '.brl2100-koppeling.json';
 const DAYS = { maandag:'Maandag', dinsdag:'Dinsdag', woensdag:'Woensdag', donderdag:'Donderdag', vrijdag:'Vrijdag', zaterdag:'Zaterdag', zondag:'Zondag' };
+const DAY_FOLDERS = { Maandag:'1maandag', Dinsdag:'2dinsdag', Woensdag:'3woensdag', Donderdag:'4donderdag', Vrijdag:'5vrijdag', Zaterdag:'6zaterdag', Zondag:'7zondag' };
 
 function required(name) { const value=String(process.env[name]||'').trim(); if(!value) throw new Error(`Missing env var: ${name}`); return value; }
 function cleanPart(value,fallback) { return String(value||fallback||'').normalize('NFKC').replace(/[\\/:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').replace(/[. ]+$/g,'').trim().slice(0,120)||fallback; }
@@ -23,7 +24,15 @@ async function dropbox(token,endpoint,body) {
 }
 async function createFolder(token,path) { try { await dropbox(token,'/files/create_folder_v2',{path:normalizePath(path),autorename:false}); } catch(err) { if(!/conflict|already_exists/i.test(err.message||'')) throw err; } }
 async function ensureFolder(token,path) { let current=''; for(const segment of normalizePath(path).split('/').filter(Boolean)){current+=`/${segment}`;await createFolder(token,current);} }
-async function listFolders(token,path) { try { const data=await dropbox(token,'/files/list_folder',{path:normalizePath(path),recursive:false,include_deleted:false}); return (data.entries||[]).filter(x=>x['.tag']==='folder'); } catch(err) { if(/not_found/i.test(err.message||'')) return []; throw err; } }
+async function listFolders(token,path) { try { let data=await dropbox(token,'/files/list_folder',{path:normalizePath(path),recursive:false,include_deleted:false}); const entries=[...(data.entries||[])]; while(data.has_more){data=await dropbox(token,'/files/list_folder/continue',{cursor:data.cursor});entries.push(...(data.entries||[]));} return entries.filter(x=>x['.tag']==='folder'); } catch(err) { if(/not_found/i.test(err.message||'')) return []; throw err; } }
+async function resolveDayPath(token,day) {
+  const wanted=DAY_FOLDERS[day];
+  const compact=name=>normalizeName(name).replace(/\s+/g,'');
+  const matches=(await listFolders(token,BRL2100_BASE)).filter(folder=>compact(folder.name)===compact(wanted));
+  if(matches.length>1) throw new Error(`Meerdere genummerde dagmappen gevonden voor ${day}; controleer de mapnamen in Dropbox`);
+  if(matches.length) return matches[0].path_display||matches[0].path_lower;
+  const path=joinPath(BRL2100_BASE,wanted); await ensureFolder(token,path); return path;
+}
 async function getMetadata(token,path) { try { return await dropbox(token,'/files/get_metadata',{path:normalizePath(path)}); } catch(err) { if(/not_found/i.test(err.message||'')) return null; throw err; } }
 function findFolder(folders,wanted,projectMode) { const norm=normalizeName(wanted),key=projectKey(wanted); return folders.find(x=>projectMode?projectKey(x.name)===key:normalizeName(x.name)===norm); }
 async function resolveSource(token,customerName,projectFolderName) {
@@ -45,7 +54,7 @@ module.exports=async function handler(req,res) {
   if(req.method==='OPTIONS')return res.status(204).end();if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
   try {
     const body=req.body||{};const day=DAYS[normalizeName(body.day)];if(!day)throw new Error('Kies een geldige werkdag');
-    const token=await getAccessToken();const source=await resolveSource(token,body.customerName,body.projectFolderName);const dayPath=joinPath(BRL2100_BASE,day);await ensureFolder(token,dayPath);
+    const token=await getAccessToken();const source=await resolveSource(token,body.customerName,body.projectFolderName);const dayPath=await resolveDayPath(token,day);
     const destinationPath=joinPath(dayPath,source.project);if(await getMetadata(token,destinationPath))throw new Error(`Dit project staat al bij ${day}`);
     await copyFolder(token,source.path,destinationPath);
     await uploadJson(token,joinPath(source.path,LINK_FILE),{type:'brl2100-mirror',day,sourcePath:source.path,destinationPath,customer:source.customer,project:source.project,linkedAt:new Date().toISOString()});
