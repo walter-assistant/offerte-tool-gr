@@ -684,6 +684,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   <strong>📋 Offerte:</strong>
   <input id="offerteSearch" class="offerte-search" type="search" placeholder="Zoek klant of offertenummer..." oninput="handleOfferteSearch()">
   <select id="offerteSelect" onchange="switchOfferte()"></select>
+  <button class="btn-sm" onclick="switchOfferte()">Open</button>
+  <button class="btn-sm" onclick="loadOffertesList()">Lijst vernieuwen</button>
   <span class="offerte-search-count" id="offerteSearchCount"></span>
   <button class="btn-sm" onclick="nieuweOfferteCloud()">+ Nieuw</button>
   <button class="btn-sm" onclick="renameOfferte()">✏️ Hernoem</button>
@@ -2159,11 +2161,26 @@ async function showApp() {
 
 // Offerte CRUD
 async function loadOffertesList() {
-  const { data } = await sb.from('offertes').select('id, name, updated_at, data').order('updated_at', { ascending: false });
-  allOffertes = data || [];
-  renderKlantSelect();
-  if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
+  const count = document.getElementById('offerteSearchCount');
+  try {
+    if(count) count.textContent = 'Lijst laden?';
+    const list=[];
+    for(let from=0;;from+=500){
+      const {data,error}=await sb.from('offertes').select('id, name, updated_at, data').order('id',{ascending:true}).range(from,from+499);
+      if(error) throw error;
+      list.push(...(data||[]));
+      if(!data || data.length<500) break;
+    }
+    allOffertes=list.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));
+    renderKlantSelect();
+    renderOfferteSelect();
+    if (document.getElementById('tabDashboard')?.classList.contains('active')) renderDashboard();
+  }catch(error){
+    if(count) count.textContent='Laden mislukt; bestaande lijst behouden';
+    console.error('Offertelijst ophalen mislukt',error);
+  }
 }
+function normaliseerOfferteZoektekst(value){return String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 
 function offerteSearchText(o) {
   const d = o?.data || {};
@@ -2183,7 +2200,7 @@ function getFilteredOffertes() {
   const q = (input?.value || '').trim().toLowerCase();
   if (!q) return allOffertes;
   const terms = q.split(/\s+/).filter(Boolean);
-  return allOffertes.filter(o => terms.every(t => offerteSearchText(o).includes(t)));
+  return allOffertes.filter(o => terms.every(t => normaliseerOfferteZoektekst(offerteSearchText(o)).includes(normaliseerOfferteZoektekst(t))));
 }
 
 function renderOfferteSelect() {
@@ -2204,13 +2221,8 @@ function renderOfferteSelect() {
   if (count) count.textContent = filtered.length === allOffertes.length ? `${allOffertes.length} totaal` : `${filtered.length}/${allOffertes.length}`;
 }
 
-async function handleOfferteSearch() {
+function handleOfferteSearch() {
   renderOfferteSelect();
-  const sel = document.getElementById('offerteSelect');
-  const selectedId = sel?.value;
-  if (selectedId && selectedId !== currentOfferteId) {
-    await switchOfferte();
-  }
 }
 
 async function switchOfferte() {
