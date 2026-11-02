@@ -2099,37 +2099,39 @@ async function useOfflineMode() {
 }
 
 async function doLogin() {
-  const email = gv('authEmail'), pw = gv('authPassword');
+  const email = gv('authEmail').trim(), pw = gv('authPassword');
   if (!email || !pw) return;
   const btn = document.getElementById('authBtn');
   const errEl = document.getElementById('authError');
   btn.disabled = true;
   errEl.textContent = isRegistering ? 'Account wordt aangemaakt...' : 'Bezig met inloggen...';
   try {
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: isRegistering ? 'signup' : 'login', email, password: pw })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      errEl.textContent = (data.error || 'Login mislukt.') + ' Gebruik eventueel: Zonder cloud openen.';
+    // Direct SDK authentication works on GitHub Pages as well as Vercel.
+    // Keep the existing Supabase client, session storage and account unchanged.
+    const { data, error } = isRegistering
+      ? await sb.auth.signUp({ email, password: pw })
+      : await sb.auth.signInWithPassword({ email, password: pw });
+    if (error) {
+      const message = String(error.message || 'Inloggen mislukt.');
+      errEl.textContent = /invalid login credentials/i.test(message)
+        ? 'E-mailadres of wachtwoord klopt niet. Gebruik eventueel Wachtwoord vergeten of Inloglink mailen.'
+        : /failed to fetch|network/i.test(message)
+          ? 'Geen verbinding met de inlogservice. Controleer je internetverbinding en probeer opnieuw.'
+          : message;
       return;
     }
-    const session = data.session || data;
-    if (session.access_token && session.refresh_token) {
-      const { error } = await sb.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-      if (error) { errEl.textContent = error.message; return; }
+    if (data?.session) {
+      currentUser = data.session.user;
       errEl.textContent = '';
-      showApp();
+      // onAuthStateChange loads the existing cloud offers after SIGNED_IN.
     } else {
       errEl.textContent = isRegistering
-        ? 'Account aangemaakt. Check eventueel je mail en log daarna in.'
-        : 'Login gelukt, maar sessie kon niet worden opgeslagen.';
+        ? 'Account aangemaakt. Bevestig je e-mailadres via de ontvangen mail en log daarna in.'
+        : 'Geen aanmelding ontvangen. Probeer opnieuw.';
     }
   } catch (err) {
-    console.error('Login proxy fout:', err);
-    errEl.textContent = 'Failed to fetch';
+    console.error('Inlogverbinding mislukt:', err);
+    errEl.textContent = 'Inloggen niet gelukt. Controleer je verbinding en probeer opnieuw.';
   } finally {
     btn.disabled = false;
   }
